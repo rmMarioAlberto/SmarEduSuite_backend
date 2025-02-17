@@ -3,7 +3,7 @@ require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const app = express();
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 3000;
 
 // Requiere las conexiones a las bases de datos
 require('./config/mongo');
@@ -30,4 +30,4 @@ app.use('/iot', tempRoutes);
 
 
 //port
-app.listen(PORT, '0.0.0.0', () => console.log(`Servidor corriendo en http://localhost:${PORT}`));
+app.listen(PORT, () => console.log(`Servidor corriendo en http://localhost:${PORT}`));
