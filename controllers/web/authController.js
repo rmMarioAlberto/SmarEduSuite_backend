@@ -21,9 +21,6 @@ exports.login = (req, res) => {
         }
 
         const user = results.rows[0];
-        if (user.contra === '') {
-            return res.status(200).json({ message: 'Primer login', user });
-        }
 
         if (user.contra !== contra) {
             return res.status(401).json({ message: 'Contraseña incorrecta' });
