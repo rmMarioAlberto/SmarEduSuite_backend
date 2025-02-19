@@ -6,5 +6,6 @@ router.get('/materias', materiaCrud.getMaterias);
 router.get('/materiaById', materiaCrud.getMateriaById);
 router.post('/addMateria', materiaCrud.addMateria);
 router.put('/updateMateria', materiaCrud.updateMateria);
+router.get('/searchMateria', materiaCrud.searchMateria);
 
 module.exports = router;
