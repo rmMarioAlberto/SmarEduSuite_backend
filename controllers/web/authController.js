@@ -82,4 +82,3 @@ exports.changePassword = (req, res) => {
         return res.status(200).json({ message: 'Contraseña cambiada exitosamente' });
     });
 };
-//pruebas
