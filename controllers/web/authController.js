@@ -39,19 +39,19 @@ exports.login = (req, res) => {
             idGrupo: user.idGrupo
         };
 
+        const token = jwt.sign({ id: user.id, correo: user.correo }, secretKey, { expiresIn: '1h' });
+
         if (user.status === 0) {
             return res.status(301).json({ message: "Usuario deshabilitado" });
         }
 
         if (user.contra === null) {
-            return res.status(300).json({ message: "Primer login", user: filteredUser });
+            return res.status(300).json({ message: "Primer login", user: filteredUser, token });
         }
 
         if (user.contra !== contra) {
             return res.status(401).json({ message: 'Contraseña incorrecta' });
         }
-
-        const token = jwt.sign({ id: user.id, correo: user.correo }, secretKey, { expiresIn: '1h' });
 
         return res.status(200).json({ message: 'Login exitoso', user: filteredUser, token });
     });
