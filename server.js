@@ -19,10 +19,10 @@ app.use(express.json());
 
 //apis
 
-            ///IoT
+            ///web
 app.use('/web', authRoutes);
 
-            ///web
+            ///iot
 app.use('/iot', tempRoutes);
 
             ///movil
