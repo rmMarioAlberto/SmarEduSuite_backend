@@ -10,14 +10,8 @@ require('./config/mongo');
 require('./config/pg');
 
 //requires routes
-//movil
-const authRoutesMovil = require('./routes/movil/authRoutes')
-//web
-const authRoutesWeb = require('./routes/web/authRoutes');
-const materiaRoutes = require('./routes/web/materiaRoutes');
-//iot
+const authRoutes = require('./routes/web/authRoutes');
 const tempRoutes = require('./routes/iot/tempRoutes');
-
 
 //cors and 
 app.use(cors());
@@ -25,22 +19,14 @@ app.use(express.json());
 
 //apis
 
-<<<<<<< HEAD
-///IoT
-=======
             ///web
 app.use('/web', authRoutes);
 
             ///iot
->>>>>>> pruebas
 app.use('/iot', tempRoutes);
 
-///web
-app.use('/web/auth', authRoutesWeb);
-app.use('/web/materias', materiaRoutes);
+            ///movil
 
-///movil
-app.use('/movil', authRoutesMovil);
 
 
 //port
