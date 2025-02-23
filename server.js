@@ -25,7 +25,14 @@ app.use(express.json());
 
 //apis
 
+<<<<<<< HEAD
 ///IoT
+=======
+            ///web
+app.use('/web', authRoutes);
+
+            ///iot
+>>>>>>> pruebas
 app.use('/iot', tempRoutes);
 
 ///web
