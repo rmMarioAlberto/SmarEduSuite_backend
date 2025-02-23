@@ -45,28 +45,37 @@ exports.login = (req, res) => {
             return res.status(301).json({ message: "Usuario deshabilitado" });
         }
 
-        if (user.contra === null) {
-            return res.status(300).json({ message: "Primer login", user: filteredUser });
-        }
-
-        if (user.contra !== contra) {
-            return res.status(401).json({ message: 'Contraseña incorrecta : 1' });
-        }
-
-
         const token = jwt.sign({ id: user.id, correo: user.correo }, secretKey, { expiresIn: '1h' });
 
-        db.query(query2, [token, user.id], (err, results) => {
-            if (err) {
-                return res.status(500).json({ message: 'Error en el servidor : 2' });
+        if (user.contra === null) {
+            db.query(query2, [token, user.id], (err, results) => {
+                if (err) {
+                    return res.status(500).json({ message: 'Error en el servidor : 2' });
+                }
+
+                if (results.rowCount === 0) {
+                    return res.status(404).json({ message: 'Usuario no encontrado : 2' });
+                }
+
+                return res.status(300).json({ message: "Primer login", user: filteredUser, token });
+            });
+        } else {
+            if (user.contra !== contra) {
+                return res.status(401).json({ message: 'Contraseña incorrecta : 1' });
             }
 
-            if (results.rowCount === 0) {
-                return res.status(404).json({ message: 'Usuario no encontrado : 2' });
-            }
+            db.query(query2, [token, user.id], (err, results) => {
+                if (err) {
+                    return res.status(500).json({ message: 'Error en el servidor : 2' });
+                }
 
-            return res.status(200).json({ message: 'Login exitoso', user: filteredUser, token });
-        });
+                if (results.rowCount === 0) {
+                    return res.status(404).json({ message: 'Usuario no encontrado : 2' });
+                }
+
+                return res.status(200).json({ message: 'Login exitoso', user: filteredUser, token });
+            });
+        }
     });
 };
 
