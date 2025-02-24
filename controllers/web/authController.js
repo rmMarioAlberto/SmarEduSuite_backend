@@ -15,7 +15,7 @@ exports.login = (req, res) => {
         return res.status(400).json({ message: 'La contraseña es requerida' });
     }
 
-    const query = 'SELECT id, nombre, "apellidoMa", "apellidoPa", contra, correo, tipo, status, huella, "idGoogle", "idGrupo", token FROM usuario WHERE correo = $1';
+    const query = 'SELECT id, nombre, "apellidoMa", "apellidoPa", contra, correo, tipo, status, huella, "idGoogle", "idGrupo", token FROM usuario WHERE correo = $1 AND status = 1';
     const query2 = 'UPDATE usuario SET token = $1 WHERE id = $2';
 
     db.query(query, [correo], (err, results) => {
