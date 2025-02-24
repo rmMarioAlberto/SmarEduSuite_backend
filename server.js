@@ -10,7 +10,12 @@ require('./config/mongo');
 require('./config/pg');
 
 //requires routes
+
+//web
 const authRoutes = require('./routes/web/authRoutes');
+const crudMaterias = require('./routes/web/materiaRoutes')
+
+//iot
 const tempRoutes = require('./routes/iot/tempRoutes');
 
 //cors and 
@@ -21,6 +26,7 @@ app.use(express.json());
 
             ///web
 app.use('/web', authRoutes);
+app.use('/web/crudMaterias', crudMaterias)
 
             ///iot
 app.use('/iot', tempRoutes);
