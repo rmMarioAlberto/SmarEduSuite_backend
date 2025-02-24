@@ -14,6 +14,7 @@ require('./config/pg');
 //web
 const authRoutes = require('./routes/web/authRoutes');
 const crudMaterias = require('./routes/web/materiaRoutes')
+const crudMaestro = require('./routes/web/maestroRoutes')
 
 //iot
 const tempRoutes = require('./routes/iot/tempRoutes');
@@ -27,6 +28,7 @@ app.use(express.json());
             ///web
 app.use('/web', authRoutes);
 app.use('/web/crudMaterias', crudMaterias)
+app.use('/web/crudMaestro', crudMaestro)
 
             ///iot
 app.use('/iot', tempRoutes);
