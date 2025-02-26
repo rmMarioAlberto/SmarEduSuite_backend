@@ -30,7 +30,7 @@ app.use(express.json());
 app.use('/web', authRoutes);
 app.use('/web/crudMaterias', crudMaterias)
 app.use('/web/crudMaestro', crudMaestro)
-app.use('web/crudCarrera', crudCarrera)
+app.use('/web/crudCarrera', crudCarrera)
 
             ///iot
 app.use('/iot', tempRoutes);
