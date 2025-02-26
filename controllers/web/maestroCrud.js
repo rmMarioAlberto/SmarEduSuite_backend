@@ -2,24 +2,30 @@ const jwtControl = require('../../config/jwtConfig')
 const db = require('../../config/pg');
 
 exports.getMaestro = (req, res) => {
-    const {id,token} = req.body;
+    const { id, token } = req.body;
+
+    // Validar que id y token estén presentes
+    if (!id || !token) {
+        return res.status(400).json({ message: "ID y token son requeridos" });
+    }
 
     jwtControl.validateToken(id, token, (results) => {
         if (!results.valid) {
             return res.status(401).json({ message: results.error });
         }
 
-        const query = 'SELECT "id","nombre","apellidoMa","apellidoPa","correo","contra","tipo","status","huella" FROM usuario WHERE tipo = 2'
+        const query = 'SELECT "id","nombre","apellidoMa","apellidoPa","correo","tipo","status","huella" FROM usuario WHERE tipo = 2';
 
         db.query(query, (err, results) => {
             if (err) {
+                console.error("Error en la consulta:", err);
                 return res.status(500).json({ message: 'Error en el servidor' });
             }
 
             return res.status(200).json(results.rows);
         });
     });
-}
+};
 
 // Consulta maestro por id
 exports.getMaestroById = (req, res) => {

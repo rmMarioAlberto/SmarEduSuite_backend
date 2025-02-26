@@ -1,4 +1,4 @@
-//dependencias
+// Dependencias
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
@@ -9,35 +9,55 @@ const PORT = process.env.PORT || 3000;
 require('./config/mongo');
 require('./config/pg');
 
-//requires routes
+// Requires de rutas
 
-//web
+// Web
 const authRoutes = require('./routes/web/authRoutes');
-const crudMaterias = require('./routes/web/materiaRoutes')
-const crudMaestro = require('./routes/web/maestroRoutes')
-const crudCarrera = require('./routes/web/carreraRoutes')
+const crudMaterias = require('./routes/web/materiaRoutes');
+const crudMaestro = require('./routes/web/maestroRoutes');
+const crudCarrera = require('./routes/web/carreraRoutes');
 
-//iot
+// IoT
 const tempRoutes = require('./routes/iot/tempRoutes');
 
-//cors and 
-app.use(cors());
+// Configuración de CORS
+app.use(cors({
+    origin: process.env.FRONTEND_URL || '*', // Permite solicitudes desde el frontend (o todas en desarrollo)
+    methods: ['GET', 'POST', 'PUT', 'DELETE'], // Métodos permitidos
+    allowedHeaders: ['Content-Type', 'Authorization'], // Encabezados permitidos
+}));
+
+// Middleware para parsear JSON
 app.use(express.json());
 
-//apis
+// Rutas de la API
 
-            ///web
+// Web
 app.use('/web', authRoutes);
-app.use('/web/crudMaterias', crudMaterias)
-app.use('/web/crudMaestro', crudMaestro)
-app.use('/web/crudCarrera', crudCarrera)
+app.use('/web/crudMaterias', crudMaterias);
+app.use('/web/crudMaestro', crudMaestro);
+app.use('/web/crudCarrera', crudCarrera);
 
-            ///iot
+// IoT
 app.use('/iot', tempRoutes);
 
-            ///movil
+// Ruta de prueba para verificar que el servidor está funcionando
+app.get('/', (req, res) => {
+    res.status(200).json({ message: 'Servidor funcionando correctamente' });
+});
 
+// Middleware para manejar rutas no encontradas (404)
+app.use((req, res, next) => {
+    res.status(404).json({ message: 'Ruta no encontrada' });
+});
 
+// Middleware para manejar errores globales
+app.use((err, req, res, next) => {
+    console.error(err.stack); // Imprime el error en la consola
+    res.status(500).json({ message: 'Algo salió mal en el servidor' });
+});
 
-//port
-app.listen(PORT, () => console.log(`Servidor corriendo en http://localhost:${PORT}`));
+// Iniciar el servidor
+app.listen(PORT, () => {
+    console.log(`Servidor corriendo en http://localhost:${PORT}`);
+});
