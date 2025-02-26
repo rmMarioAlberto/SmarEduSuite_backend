@@ -2,7 +2,7 @@ const jwtControl = require('../../config/jwtConfig')
 const db = require('../../config/pg');
 
 exports.getMaestro = (req, res) => {
-    const {id,token} = req.query;
+    const {id,token} = req.body;
 
     jwtControl.validateToken(id, token, (results) => {
         if (!results.valid) {
