@@ -1,6 +1,7 @@
 const db = require('../../config/pg');
 const jwt = require('jsonwebtoken');
 const jwtControl = require('../../config/jwtConfig');
+const { response } = require('express');
 
 const secretKey = 'smartEduSuite';
 
@@ -106,6 +107,88 @@ exports.changePassword = (req, res) => {
             }
 
             return res.status(200).json({ message: 'Contraseña cambiada exitosamente' });
+        });
+    });
+};
+
+
+exports.loginGoogle = (req, res) => {
+    const { correo, idGoogle } = req.body;
+
+    if (!correo || !idGoogle) {
+        return res.status(400).json({ message: 'El correo y el ID de Google son requeridos' });
+    }
+
+    const query = 'SELECT * FROM usuario WHERE correo = $1';
+    
+    db.query(query, [correo], (err, result) => {
+        if (err) {
+            return res.status(500).json({ message: 'Error en el servidor', err });
+        }
+
+        if (result.rows.length === 0) {
+            return res.status(404).json({ message: 'Usuario no encontrado' });
+        }
+
+        const user = result.rows[0];
+        
+        if (user.status === 0) {
+            return res.status(301).json({ message: "Usuario deshabilitado" });
+        }
+
+        // Crear el token usando la función correcta
+        const token = jwtControl.createToken(user.id, user.correo);
+        
+        // Filtrar los datos del usuario
+        const filteredUser = {
+            id: user.id,
+            nombre: user.nombre,
+            apellidoMa: user.apellidoMa,
+            apellidoPa: user.apellidoPa,
+            correo: user.correo,
+            tipo: user.tipo,
+            status: user.status,
+            huella: user.huella,
+            idGoogle: user.idGoogle,
+            idGrupo: user.idGrupo
+        };
+
+        // Verificar si es necesario actualizar el idGoogle
+        const shouldUpdateIdGoogle = !user.idGoogle || user.idGoogle !== idGoogle;
+        
+        // Construir la consulta de actualización basada en lo que necesitamos actualizar
+        let query2;
+        let params;
+        
+        if (shouldUpdateIdGoogle) {
+            // Necesitamos actualizar tanto el token como el idGoogle
+            query2 = 'UPDATE usuario SET "idGoogle" = $1, token = $2 WHERE id = $3';
+            params = [idGoogle, token, user.id];
+        } else {
+            // Solo necesitamos actualizar el token
+            query2 = 'UPDATE usuario SET token = $1 WHERE id = $2';
+            params = [token, user.id];
+        }
+        
+        db.query(query2, params, (updateErr, updateResult) => {
+            if (updateErr) {
+                return res.status(500).json({ 
+                    message: shouldUpdateIdGoogle ? 
+                        'Error al actualizar el ID de Google y token' : 
+                        'Error al actualizar el token', 
+                    err: updateErr 
+                });
+            }
+            
+            return res.status(200).json({ 
+                message: shouldUpdateIdGoogle ? 
+                    'Login exitoso y datos actualizados' : 
+                    'Login exitoso', 
+                user: shouldUpdateIdGoogle ? 
+                    { ...filteredUser, idGoogle: idGoogle } : 
+                    filteredUser,
+                token 
+            });
         });
     });
 };
