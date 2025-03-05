@@ -71,7 +71,7 @@ exports.addGrupo = (req, res) => {
             return res.status(400).json({ message: 'El ID de la carrera es requerido' });
         }
 
-        const queryValidar = 'SELECT * FROM carrera WHERE id = $1 AND status = 1';
+        const queryValidar = 'SELECT * FROM carrera WHERE id = $1';
 
         db.query(queryValidar, [idCarrera], (err, results) => {
             if (err) {
@@ -79,7 +79,7 @@ exports.addGrupo = (req, res) => {
             }
 
             if (results.rows.length === 0) {
-                return res.status(400).json({ message: 'La carrera no existe o se encuntra inactiva' });
+                return res.status(400).json({ message: 'La carrera no existe' });
             }
 
             // Solo inserta el grupo si la carrera existe
