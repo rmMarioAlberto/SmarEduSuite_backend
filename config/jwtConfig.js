@@ -60,7 +60,50 @@ const validateToken = (id, token, callback) => {
 };
 
 
+const validateTokenMovil = (id, tokenMovil, callback) => {
+    const query = 'SELECT token_movil FROM usuario WHERE id = $1';
+
+    pg.query(query, [id], (err, results) => {
+        if (err) {
+            return callback({ valid: false, error: 'Error en el servidor' });
+        }
+
+        if (results.rows.length === 0) {
+            return callback({ valid: false, error: 'Usuario no encontrado' });
+        }
+
+        const storedTokenMovil = results.rows[0].token_movil;
+
+        if (!storedTokenMovil) {
+            return callback({ valid: false, error: 'Token móvil no encontrado' });
+        }
+
+        if (storedTokenMovil !== tokenMovil) {
+            return callback({ valid: false, error: 'Token móvil no coincide' });
+        }
+
+        try {
+            const decoded = jwt.verify(tokenMovil, secretKey);
+            return callback({ valid: true, decoded });
+        } catch (err) {
+            if (err.name === 'TokenExpiredError') {
+                const updateQuery = 'UPDATE usuario SET token_movil = NULL WHERE id = $1';
+                pg.query(updateQuery, [id], (updateErr) => {
+                    if (updateErr) {
+                        return callback({ valid: false, error: 'Error al actualizar el token móvil en la base de datos' });
+                    }
+                    return callback({ valid: false, error: 'Token móvil expirado' });
+                });
+            } else {
+                return callback({ valid: false, error: err.message });
+            }
+        }
+    });
+};
+
+
 module.exports = {
     createToken,
-    validateToken
+    validateToken,
+    validateTokenMovil
 }

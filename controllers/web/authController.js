@@ -28,6 +28,7 @@ exports.login = (req, res) => {
             return res.status(404).json({ message: 'Usuario no encontrado : 1' });
         }
 
+
         const user = results.rows[0];
         const filteredUser = {
             id: user.id,
@@ -44,6 +45,10 @@ exports.login = (req, res) => {
 
         if (user.status === 0) {
             return res.status(301).json({ message: "Usuario deshabilitado" });
+        }
+
+        if (user.tipo === 1) {
+            return res.status(403).json({ message: 'No tienes permisos para acceder a esta aplicación' });
         }
 
         const token = jwt.sign({ id: user.id, correo: user.correo }, secretKey, { expiresIn: '1h' });

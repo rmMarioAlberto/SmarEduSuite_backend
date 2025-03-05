@@ -19,6 +19,10 @@ const crudCarrera = require('./routes/web/carreraRoutes');
 
 // IoT
 const tempRoutes = require('./routes/iot/tempRoutes');
+const huellaRoutes = require('./routes/iot/huellaRoutes');
+
+//movil
+const authMovil = require('./routes/movil/authRoutes')
 
 // Configuración de CORS
 app.use(cors({
@@ -39,7 +43,11 @@ app.use('/web/crudMaestro', crudMaestro);
 app.use('/web/crudCarrera', crudCarrera);
 
 // IoT
-app.use('/iot', tempRoutes);
+app.use('/iot/temperatura', tempRoutes);
+app.use('/iot/huella', huellaRoutes);
+
+//movil
+app.use('/movil', authMovil)
 
 // Ruta de prueba para verificar que el servidor está funcionando
 app.get('/', (req, res) => {
