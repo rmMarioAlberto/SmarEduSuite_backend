@@ -158,7 +158,7 @@ exports.searchGrupo = (req, res) => {
             return res.status(400).json({ message: 'Nombre del grupo es requerido' });
         }
 
-        const query = 'SELECT * FROM grupo WHERE nombre ILIKE $1';
+        const query = 'SELECT grupo.id AS "grupoId", grupo.nombre AS "grupoNombre", grupo.status, grupo."idCarrera", carrera.nombre AS "carreraNombre" FROM grupo WHERE nombre ILIKE $1';
         const searchValue = `%${nombre}%`;
 
         db.query(query, [searchValue], (err, results) => {
