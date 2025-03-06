@@ -50,20 +50,8 @@ exports.loginMovil = (req, res) => {
                 return res.status(409).json({ message: 'Ya hay una sesión activa' });
             }
 
-            // Si el token no es válido o ha expirado, proceder con el login
             if (user.contra === null) {
-                const tokenMovil = jwtConfig.createToken(user.id, user.correo);
-                const query2 = 'UPDATE usuario SET token_movil = $1 WHERE id = $2';
-
-                db.query(query2, [tokenMovil, user.id], (err, results) => {
-                    if (err) {
-                        return res.status(500).json({ message: 'Error en el servidor' });
-                    }
-                    if (results.rowCount === 0) {
-                        return res.status(404).json({ message: 'Usuario no encontrado' });
-                    }
-                    return res.status(300).json({ message: "Primer login", user: filteredUser, tokenMovil });
-                });
+                return res.status(300).json({ message: "Primer login", user: filteredUser });
             } else {
                 if (user.contra !== contra) {
                     return res.status(401).json({ message: 'Contraseña incorrecta' });
