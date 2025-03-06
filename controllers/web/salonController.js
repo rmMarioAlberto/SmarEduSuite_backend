@@ -69,7 +69,7 @@ exports.getSalonById = (req, res) => {
 }
 
 exports.addSalon = (req, res) => {
-    const { nombre, edificio, token, idUsuario } = req.body;
+    const { nombre, edificio, status,  token, idUsuario } = req.body;
 
     if (!idUsuario) {
         return res.status(400).json({ message: "id de usuario es necesario" })
@@ -89,21 +89,24 @@ exports.addSalon = (req, res) => {
         if (!edificio) {
             return res.status(400).json({ message: "edificio es necesario" })
         }
+        if (!status) {
+            return res.status(400).json({ message: "status es necesario" })
+        }
 
-        const query = 'INSERT INTO salon (nombre, edificio) VALUES ($1,$2)';
+        const query = 'INSERT INTO salon (nombre, edificio, status) VALUES ($1,$2,$3)';
 
-        db.query(query, [nombre, edificio], (err, results) => {
+        db.query(query, [nombre, edificio, status], (err, results) => {
             if (err) {
                 return res.status(500).json({ message: 'Error en el servidor' });
             }
 
-            return res.status(200).json({ message: 'Materia agregada exitosamente' });
+            return res.status(200).json({ message: 'salon agregada exitosamente' });
         })
     });
 }
 
 exports.updateSalon = (req, res) => {
-    const { idSalon, nombre, edificio, token, idUsuario } = req.body;
+    const { idSalon, nombre, edificio,status, token, idUsuario } = req.body;
 
     if (!idUsuario) {
         return res.status(400).json({ message: "id de usuario es necesario" });
@@ -123,13 +126,16 @@ exports.updateSalon = (req, res) => {
         if (!edificio) {
             return res.status(400).json({ message: "edificio es necesario" });
         }
+        if (!status) {
+            return res.status(400).json({ message: "status es necesario" });
+        }
         if (!idSalon) {
             return res.status(400).json({ message: "el id de salon es necesario" });
         }
 
-        const query = 'UPDATE salon SET nombre = $1, edificio = $2 WHERE id = $3';
+        const query = 'UPDATE salon SET nombre = $1, edificio = $2, status = $3 WHERE id = $4';
 
-        db.query(query, [nombre, edificio, idSalon], (err, results) => {
+        db.query(query, [nombre, edificio,status, idSalon], (err, results) => {
             if (err) {
                 return res.status(500).json({ message: 'Error en el servidor' });
             }
