@@ -7,5 +7,6 @@ router.post('/alumnosById', alumnoCrud.getAlumnosById);
 router.post('/addAlumno', alumnoCrud.addAlumno);
 router.put('/updateAlumno', alumnoCrud.updateAlumno);
 router.post('/searchAlumno', alumnoCrud.searchAlumno);
+router.post('/getGruposAlumnos', alumnoCrud.getGruposAlumnos);
 
 module.exports = router;

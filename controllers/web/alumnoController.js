@@ -1,3 +1,4 @@
+const { query } = require('express');
 const jwtControl = require('../../config/jwtConfig');
 const db = require('../../config/pg');
 
@@ -227,3 +228,35 @@ exports.updateAlumno = (req, res) => {
         })
     })
 };
+
+exports.getGruposAlumnos = (req,res) => {
+    const {idUsuario, token} = req.body;
+
+    if (!idUsuario) {
+        return res.status(400).json({message: 'El id del usuario es necesario(1)'})
+    }
+    if (!token) {
+        return res.status(400).json({message: 'EL token del usuario es necesario(1)'})
+    }
+
+    jwtControl.validateToken(idUsuario,token, (results) => {
+        if (!results.valid) {
+            return res.status(401).json({message : 'El token no es valido'});
+        }
+
+        const query = 'SELECT * FROM get_grupos_carrera';
+
+        db.query(query, (err, results) => {
+            if (err) {
+                return res.status(500).json({message: `Error en el servidor: ${err.message}`})
+            }
+
+            if (results.rowCount === 0) {
+                return res.status(500).json({message: 'Grupos no encontrados'})
+            }
+
+            return res.status(200).json(results.rows)
+        })
+    
+    })
+}

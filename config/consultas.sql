@@ -37,6 +37,16 @@ GROUP BY grupo.id, grupo.nombre, carrera.id, carrera.nombre
 HAVING COUNT(usuario.id) >= 1
 ORDER BY grupo.id;
 
+CREATE OR REPLACE VIEW get_grupos_carrera AS
+SELECT 
+    grupo.id AS "grupoId",
+    string_agg(grupo.nombre || '(' || carrera.nombre || ')', ', ') AS grupo_carrera
+FROM grupo
+INNER JOIN carrera ON grupo."idCarrera" = carrera.id
+GROUP BY grupo.id, grupo.nombre, carrera.nombre;
+
+SELECT * FROM get_grupos_carrera;
+
 /*Procedimietos almacenados*/
 
 CREATE OR REPLACE FUNCTION get_alumno_by_id(p_id_alumno INTEGER)
