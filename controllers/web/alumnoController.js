@@ -18,7 +18,7 @@ exports.getAlumnos = (req, res) => {
             return res.status(401).json({ message: results.error });
         }
 
-        const query = 'SELECT * FROM vista_alumnos_completa ORDER BY "idGrupo", "nombreCompletoUsuario"';
+        const query = 'SELECT * FROM vista_alumnos_completa ORDER BY idgrupo, nombrecompletousuario';
 
         db.query(query, (err, results) => {
             if (err) {

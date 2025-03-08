@@ -1,26 +1,27 @@
 /*vistas*/
 CREATE OR REPLACE VIEW vista_alumnos_completa AS
 SELECT 
-    usuario.id AS "idUsuario",
-    usuario.nombre || ' ' || usuario."apellidoMa" || ' ' || usuario."apellidoPa" AS "nombreCompletoUsuario",
-    usuario.correo AS "correoUsuario",
-    usuario."idGrupo" AS "idGrupo",
+    usuario.id AS idusuario,
+    usuario.nombre || ' ' || usuario."apellidoMa" || ' ' || usuario."apellidoPa" AS nombrecompletousuario,
+    usuario.correo AS correousuario,
+    usuario."idGrupo" AS idgrupo,
     (SELECT grupo.nombre 
      FROM grupo 
-     WHERE grupo.id = usuario."idGrupo") AS "nombreGrupo",
+     WHERE grupo.id = usuario."idGrupo") AS nombregrupo,
     (SELECT carrera.nombre 
      FROM carrera 
      WHERE carrera.id = (SELECT grupo."idCarrera" 
                          FROM grupo 
-                         WHERE grupo.id = usuario."idGrupo")) AS "nombreCarrera",
+                         WHERE grupo.id = usuario."idGrupo")) AS nombrecarrera,
     (SELECT grupo."idCarrera" 
      FROM grupo 
-     WHERE grupo.id = usuario."idGrupo") AS "idCarrera"
+     WHERE grupo.id = usuario."idGrupo") AS idcarrera,
+     usuario.status as usuariostatus
 FROM usuario
 WHERE usuario.status = 1 AND usuario.tipo = 1
 ORDER BY usuario."idGrupo";
 
-SELECT * FROM vista_alumnos_completa WHERE "idUsuario" = 1
+SELECT * FROM vista_alumnos_completa 
 
 SELECT 
     grupo.id AS "idGrupo",
@@ -79,31 +80,33 @@ SELECT * FROM get_alumno_by_id(51);
 
 CREATE OR REPLACE FUNCTION search_alumno(p_busqueda TEXT)
 RETURNS TABLE (
-    id_usuario INTEGER,
-    nombre_completo TEXT,
-    correo VARCHAR,
-    id_grupo INTEGER,
-    nombre_grupo VARCHAR,
-    id_carrera INTEGER,
-    nombre_carrera VARCHAR
+    idusuario INTEGER,
+    nombrecompletousuario TEXT,
+    correousuario VARCHAR,
+    idgrupo INTEGER,
+    nombregrupo VARCHAR,
+    idcarrera INTEGER,
+    nombrecarrera VARCHAR,
+    usuariostatus INTEGER
 ) AS $$
 BEGIN
     RETURN QUERY
     SELECT 
-        "idUsuario",
-        "nombreCompletoUsuario",
-        "correoUsuario",
-        "idGrupo",
-        "nombreGrupo",
-        "idCarrera",
-        "nombreCarrera"
-    FROM vista_alumnos_completa
-    WHERE "nombreCompletoUsuario" ILIKE '%' || p_busqueda || '%'
-    ORDER BY "idGrupo", "nombreCompletoUsuario";
+        v.idusuario,
+        v.nombrecompletousuario,
+        v.correousuario,
+        v.idgrupo,
+        v.nombregrupo,
+        v.idcarrera,
+        v.nombrecarrera,
+        v.usuariostatus
+    FROM vista_alumnos_completa v
+    WHERE v.nombrecompletousuario ILIKE '%' || p_busqueda || '%'
+    ORDER BY v.idgrupo, v.nombrecompletousuario;
 END;
 $$ LANGUAGE plpgsql;
 
-SELECT * FROM search_alumno('');
+SELECT * FROM search_alumno('k');
 
 
 /*trigers*/
