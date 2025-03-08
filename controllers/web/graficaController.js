@@ -84,7 +84,14 @@ exports.tempGrafica = (req, res) => {
             
             
             db.collection(tempColeccion).aggregate(query).toArray()
-                .then(resultados => {                    
+                .then(resultados => {       
+                    if (resultados.length === 0) {
+                        return res.status(400).json({
+                            success: true,
+                            message: 'No se encontraron registros para los criterios especificados'
+                        });
+                    }             
+
                     return res.status(200).json({
                         success: true,
                         count: resultados.length,
