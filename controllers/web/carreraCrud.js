@@ -9,7 +9,7 @@ exports.getCarrera = (req, res) => {
             return res.status(401).json({ message: results.error });
         }
 
-        const query = 'SELECT * FROM carrera';
+        const query = 'SELECT * FROM carrera ORDER BY id';
 
         db.query(query, (err, results) => {
             if (err) {
@@ -110,7 +110,7 @@ exports.searchCarrera = (req, res) => {
             return res.status(400).json({ message: 'Nombre de carrera es requerido' });
         }
 
-        const query = 'SELECT * FROM carrera WHERE nombre ILIKE $1';
+        const query = 'SELECT * FROM carrera WHERE nombre ILIKE $1 ORDER BY id';
         const searchValue = `%${nombre}%`;
 
         db.query(query, [searchValue], (err, results) => {

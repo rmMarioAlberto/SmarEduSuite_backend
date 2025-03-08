@@ -10,7 +10,7 @@ exports.getMaterias = (req, res) => {
             return res.status(401).json({ message: results.error });
         }
 
-        const query = 'SELECT * FROM materia';
+        const query = 'SELECT * FROM materia ORDER BY id';
 
         db.query(query, (err, results) => {
             if (err) {
@@ -130,7 +130,7 @@ exports.searchMateria = (req, res) => {
             return res.status(400).json({ message: 'Nombre de materia es requerido' });
         }
 
-        const query = 'SELECT * FROM materia WHERE nombre ILIKE $1';
+        const query = 'SELECT * FROM materia WHERE nombre ILIKE $1 ORDER BY id';
         const searchValue = `%${nombre}%`;
 
         db.query(query, [searchValue], (err, results) => {

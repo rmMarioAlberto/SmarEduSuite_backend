@@ -18,7 +18,7 @@ SELECT
      WHERE grupo.id = usuario."idGrupo") AS idcarrera,
      usuario.status as usuariostatus
 FROM usuario
-WHERE usuario.status = 1 AND usuario.tipo = 1
+WHERE usuario.tipo = 1
 ORDER BY usuario."idGrupo";
 
 SELECT * FROM vista_alumnos_completa 
@@ -52,26 +52,35 @@ SELECT * FROM get_grupos_carrera;
 
 CREATE OR REPLACE FUNCTION get_alumno_by_id(p_id_alumno INTEGER)
 RETURNS TABLE (
-    id_usuario INTEGER,
-    nombre_completo TEXT,
-    correo VARCHAR,
-    id_grupo INTEGER,
-    nombre_grupo VARCHAR,
-    id_carrera INTEGER,
-    nombre_carrera VARCHAR
+    idusuario INTEGER,
+    nombreCompletoUsuario TEXT,
+    nombreUsuario VARCHAR,
+    apellidoMaUsuario VARCHAR,
+    apellidoPaUsuario VARCHAR,
+    correoUsuario VARCHAR,
+    idGrupo INTEGER,
+    nombreGrupo VARCHAR,
+    idCarrera INTEGER,
+    nombreCarrera VARCHAR,
+    usuarioStatus INTEGER
 ) AS $$
 BEGIN
     RETURN QUERY
     SELECT 
-        "idUsuario",
-        "nombreCompletoUsuario",
-        "correoUsuario",
-        "idGrupo",
-        "nombreGrupo",
-        "idCarrera",
-        "nombreCarrera"
-    FROM vista_alumnos_completa
-    WHERE "idUsuario" = p_id_alumno;
+        v.idusuario,
+        v.nombrecompletousuario,
+        u.nombre AS nombreUsuario,
+        u."apellidoMa" AS apellidoMaUsuario,
+        u."apellidoPa" AS apellidoPaUsuario,
+        v.correousuario,
+        v.idgrupo,
+        v.nombregrupo,
+        v.idcarrera,
+        v.nombrecarrera,
+        v.usuariostatus
+    FROM vista_alumnos_completa v
+    INNER JOIN usuario u ON v.idusuario = u.id
+    WHERE v.idusuario = p_id_alumno;
 END;
 $$ LANGUAGE plpgsql;
 

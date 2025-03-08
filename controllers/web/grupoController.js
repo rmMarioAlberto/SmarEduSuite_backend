@@ -10,7 +10,7 @@ exports.getGrupos = (req, res) => {
             return res.status(401).json({ message: results.error });
         }
 
-        const query = 'SELECT grupo.id AS "grupoId", grupo.nombre AS "grupoNombre", grupo.status, grupo."idCarrera", carrera.nombre AS "carreraNombre" FROM grupo INNER JOIN carrera ON grupo."idCarrera" = carrera.id;'
+        const query = 'SELECT grupo.id AS "grupoId", grupo.nombre AS "grupoNombre", grupo.status, grupo."idCarrera", carrera.nombre AS "carreraNombre" FROM grupo INNER JOIN carrera ON grupo."idCarrera" = carrera.id ORDER BY "grupoId"'
 
         db.query(query, (err, result) => {
             if (err) {
@@ -158,7 +158,7 @@ exports.searchGrupo = (req, res) => {
             return res.status(400).json({ message: 'Nombre del grupo es requerido' });
         }
 
-        const query = 'SELECT grupo.id AS "grupoId", grupo.nombre AS "grupoNombre", grupo.status, grupo."idCarrera", carrera.nombre AS "carreraNombre" FROM grupo INNER JOIN carrera ON grupo."idCarrera" = carrera.id WHERE grupo.nombre ILIKE $1';
+        const query = 'SELECT grupo.id AS "grupoId", grupo.nombre AS "grupoNombre", grupo.status, grupo."idCarrera", carrera.nombre AS "carreraNombre" FROM grupo INNER JOIN carrera ON grupo."idCarrera" = carrera.id WHERE grupo.nombre ILIKE $1 ORDER BY "grupoId"';
         const searchValue = `%${nombre}%`;
 
         db.query(query, [searchValue], (err, results) => {

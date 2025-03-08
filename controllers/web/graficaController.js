@@ -82,7 +82,7 @@ exports.tempGrafica = (req, res) => {
                 }
             ];
             
-            // Ejecutamos la consulta de agregación
+            
             db.collection(tempColeccion).aggregate(query).toArray()
                 .then(resultados => {                    
                     return res.status(200).json({

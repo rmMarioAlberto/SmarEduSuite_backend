@@ -16,7 +16,7 @@ exports.getSalon = (req, res) => {
             return res.status(401).json({ message: results.error });
         }
 
-        const query = 'SELECT * FROM salon';
+        const query = 'SELECT * FROM salon ORDER BY id';
 
         db.query(query, (err, results) => {
             if (err) {
@@ -168,7 +168,7 @@ exports.searchSalon = (req, res) => {
             return res.status(400).json({ message: "el nombre del salón es necesario" });
         }
 
-        const query = "SELECT * FROM salon WHERE nombre ILIKE $1"; // Usamos ILIKE para búsqueda insensible a mayúsculas
+        const query = "SELECT * FROM salon WHERE nombre ILIKE $1 ORDER BY id"; // Usamos ILIKE para búsqueda insensible a mayúsculas
 
         db.query(query, [`%${nombre}%`], (err, results) => {
             if (err) {

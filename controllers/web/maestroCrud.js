@@ -14,7 +14,7 @@ exports.getMaestro = (req, res) => {
             return res.status(401).json({ message: results.error });
         }
 
-        const query = 'SELECT "id","nombre","apellidoMa","apellidoPa","correo","tipo","status","huella" FROM usuario WHERE tipo = 2';
+        const query = 'SELECT "id","nombre","apellidoMa","apellidoPa","correo","tipo","status","huella" FROM usuario WHERE tipo = 2 ORDER BY id';
 
         db.query(query, (err, results) => {
             if (err) {
@@ -151,7 +151,7 @@ exports.searchMaestro = (req, res) => {
             return res.status(400).json({ message: 'Nombre de maestro es requerido' });
         }
 
-        const query = 'SELECT "id","nombre","apellidoMa","apellidoPa","correo","contra","tipo","status","huella" FROM usuario WHERE nombre ILIKE $1 OR "apellidoPa" ILIKE $1 OR "apellidoMa" ILIKE $1';
+        const query = 'SELECT "id","nombre","apellidoMa","apellidoPa","correo","contra","tipo","status","huella" FROM usuario WHERE nombre ILIKE $1 OR "apellidoPa" ILIKE $1 OR "apellidoMa" ILIKE $1 ORDER BY id';
         const searchValue = `%${nombre}%`;
 
         db.query(query, [searchValue], (err, results) => {
