@@ -245,3 +245,100 @@ BEGIN
 END;
 $$;
 CALL verificar_disponibilidad_salon(1, 1);  -- Ejemplo: salón 1, martes (2)
+
+
+CREATE OR REPLACE FUNCTION verificar_disponibilidad_salon_2(
+    p_id_salon INT,
+    p_dia INT
+)
+RETURNS JSON
+LANGUAGE plpgsql
+AS $$
+DECLARE
+    resultado JSON;
+BEGIN
+    -- Combinar toda la lógica en una sola consulta eficiente
+    WITH salon_info AS (
+        SELECT id, nombre, status
+        FROM salon
+        WHERE id = p_id_salon
+    ),
+    salon_status AS (
+        SELECT 
+            CASE 
+                WHEN COUNT(*) = 0 THEN 'no_existe'
+                WHEN MAX(status) != 1 THEN 'inactivo'
+                ELSE 'activo'
+            END AS estado,
+            MAX(nombre) AS nombre
+        FROM salon_info
+    ),
+    todas_horas AS (
+        SELECT generate_series(7, 20) AS hora
+    ),
+    clases_dia AS (
+        SELECT 
+            EXTRACT(HOUR FROM inicio)::INT AS hora_inicio,
+            EXTRACT(HOUR FROM final)::INT AS hora_final
+        FROM clase 
+        WHERE "idSalon" = p_id_salon 
+        AND dia = p_dia
+        AND status = 1
+    ),
+    horas_ocupadas AS (
+        SELECT DISTINCT th.hora
+        FROM todas_horas th
+        JOIN clases_dia cd ON 
+            th.hora >= cd.hora_inicio AND th.hora < cd.hora_final
+    ),
+    horas_disponibilidad AS (
+        SELECT 
+            th.hora,
+            CASE WHEN ho.hora IS NULL THEN true ELSE false END AS disponible
+        FROM todas_horas th
+        LEFT JOIN horas_ocupadas ho ON th.hora = ho.hora
+    )
+    SELECT 
+        CASE 
+            WHEN ss.estado = 'no_existe' THEN
+                json_build_object(
+                    'success', false,
+                    'message', 'El salón no existe',
+                    'salon_id', p_id_salon,
+                    'dia', p_dia,
+                    'horas_disponibles', '[]'::JSON
+                )
+            WHEN ss.estado = 'inactivo' THEN
+                json_build_object(
+                    'success', false,
+                    'message', 'El salón no está activo',
+                    'salon_id', p_id_salon,
+                    'salon_nombre', ss.nombre,
+                    'dia', p_dia,
+                    'horas_disponibles', '[]'::JSON
+                )
+            ELSE
+                json_build_object(
+                    'success', true,
+                    'salon_id', p_id_salon,
+                    'salon_nombre', ss.nombre,
+                    'dia', p_dia,
+                    'horas_disponibles', (
+                        SELECT json_agg(
+                            json_build_object(
+                                'hora', hd.hora,
+                                'hora_formato', hd.hora || ':00:00',
+                                'disponible', hd.disponible
+                            )
+                        )
+                        FROM horas_disponibilidad hd
+                    )
+                )
+        END INTO resultado
+    FROM salon_status ss;
+
+    RETURN resultado;
+END;
+$$;
+
+SELECT verificar_disponibilidad_salon_2(1, 2);

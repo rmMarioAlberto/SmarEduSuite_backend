@@ -10,6 +10,7 @@ router.post('/searchClase', clasesController.searchClases);
 
 
 //info alta
+router.post('/getHoras', clasesController.getHoras)
 router.post('/getMateriasActivas', clasesController.getMateriasActivas);
 router.post('/getGruposActivos', clasesController.getGruposActivos);
 router.post('/getMaestrosActivos', clasesController.getMaestrosActivos);

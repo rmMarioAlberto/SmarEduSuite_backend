@@ -72,49 +72,67 @@ exports.getClasesByid = (req, res) => {
 exports.addClases = (req, res) => {
     const { status, inicio, final, dia, idMaestro, idGrupo, idMateria, idSalon, idCreate, token } = req.body;
 
+    // Validaciones iniciales
     if (!idCreate) {
-        return res.status(400).json({ message: 'El id del usuario es necesario' })
+        return res.status(400).json({ message: 'El id del usuario es necesario' });
     }
 
     if (!token) {
-        return res.status(400).json({ message: 'El token del usuario es necesario' })
+        return res.status(400).json({ message: 'El token del usuario es necesario' });
     }
 
+    // Validar el token
     jwtConfig.validateToken(idCreate, token, (results) => {
         if (!results.valid) {
-            return res.status(401).json({ message: 'El token del usuario no es valido o esta vencido' })
+            return res.status(401).json({ message: 'El token del usuario no es valido o esta vencido' });
         }
 
+        // Validaciones de los datos de la clase
         if (!status) {
-            return res.status(400).json({ message: 'El status de la clase es necesario' })
+            return res.status(400).json({ message: 'El status de la clase es necesario' });
         }
         if (!inicio) {
-            return res.status(400).json({ message: 'La hora de inicio de la clase es necesario' })
+            return res.status(400).json({ message: 'La hora de inicio de la clase es necesario' });
         }
         if (!final) {
-            return res.status(400).json({ message: 'La hora de final de la clase es necesario' })
+            return res.status(400).json({ message: 'La hora de final de la clase es necesario' });
         }
         if (!dia) {
-            return res.status(400).json({ message: 'El dia de la clase es necesario' })
+            return res.status(400).json({ message: 'El dia de la clase es necesario' });
         }
         if (!idMaestro) {
-            return res.status(400).json({ message: 'El id del maestro de la clase es necesario' })
+            return res.status(400).json({ message: 'El id del maestro de la clase es necesario' });
         }
         if (!idGrupo) {
-            return res.status(400).json({ message: 'El id del grupo de la clase es necesario' })
+            return res.status(400).json({ message: 'El id del grupo de la clase es necesario' });
         }
         if (!idMateria) {
-            return res.status(400).json({ message: 'El id de la materia de la clase es necesario' })
+            return res.status(400).json({ message: 'El id de la materia de la clase es necesario' });
         }
         if (!idSalon) {
-            return res.status(400).json({ message: 'El id del salon de la clase es necesario' })
+            return res.status(400).json({ message: 'El id del salon de la clase es necesario' });
         }
-        const query = '';
 
+        // Consulta de inserción
+        const query = `INSERT INTO clase 
+                        (status, inicio, final, dia, "idUsuarioMaestro", "idGrupo", "idMateria", "idSalon")
+                        VALUES ($1, $2, $3, $4, $5, $6, $7, $8);`;
 
-    })
+        db.query(query, [status, inicio, final, dia, idMaestro, idGrupo, idMateria, idSalon], (err, results) => {
+            if (err) {
+                return res.status(500).json({ message: `Error en el servidor: ${err.message}` });
+            }
+            
+            // Verificar si la inserción fue exitosa
+            if (results.rowCount > 0) {
+                return res.status(200).json({ message: 'Clase creada exitosamente' });
+            } else {
+                return res.status(500).json({ message: 'No se pudo crear la clase' });
+            }
+        });
+    });
+};
 
-}
 
 exports.updateClases = (req, res) => {
 
@@ -289,3 +307,61 @@ ORDER BY id
         })
     })
 }
+
+
+exports.getHoras = (req, res) => {
+    const { idUsuario, token, p_id_salon, p_dia } = req.body;
+
+    // Validar parámetros de entrada
+    if (!idUsuario) {
+        return res.status(400).json({ message: 'El id del usuario es necesario' });
+    }
+    if (!token) {
+        return res.status(400).json({ message: 'El token del usuario es necesario' });
+    }
+    if (!p_id_salon) {
+        return res.status(400).json({ message: 'El id del salón es necesario' });
+    }
+    if (!p_dia) {
+        return res.status(400).json({ message: 'El día es necesario' });
+    }
+
+    // Validar el token
+    jwtConfig.validateToken(idUsuario, token, (results) => {
+        if (!results.valid) {
+            return res.status(401).json({ message: results.error });
+        }
+
+        // Consultar la disponibilidad del salón
+        const query = 'SELECT verificar_disponibilidad_salon_2($1, $2) AS disponibilidad';
+
+        db.query(query, [p_id_salon, p_dia], (err, results) => {
+            if (err) {
+                return res.status(500).json({ message: 'Error en el servidor', error: err.message });
+            }
+
+            // Verificar si hay resultados
+            if (!results.rows || results.rows.length === 0) {
+                return res.status(404).json({ message: 'No se encontraron datos de disponibilidad' });
+            }
+
+            // Obtener la disponibilidad del resultado
+            const disponibilidad = results.rows[0].disponibilidad;
+
+            // Verificar el estado de la consulta según el resultado de la función
+            if (!disponibilidad.success) {
+                return res.status(400).json({
+                    message: disponibilidad.message,
+                    salon_id: disponibilidad.salon_id,
+                    dia: disponibilidad.dia
+                });
+            }
+
+            // Devolver la respuesta exitosa
+            return res.status(200).json({
+                message: 'Disponibilidad consultada exitosamente',
+                data: disponibilidad
+            });
+        });
+    });
+};
