@@ -117,5 +117,131 @@ $$ LANGUAGE plpgsql;
 
 SELECT * FROM search_alumno('k');
 
-
 /*trigers*/
+
+
+
+
+/*Consultas*/
+CREATE OR REPLACE VIEW get_clases as
+SELECT 
+    c.id as idclase,
+    c.status as statusclase,
+    c.inicio as inicoclase,
+    c.final as finalclase,
+    c.dia as diaclase,
+    c."idUsuarioMaestro" as idmaestroclase,
+    c."idGrupo" as idgrupo,
+    c."idMateria" as idmateria,
+    c."idSalon" as idsalon,
+    string_agg(u.nombre || ' ' || u."apellidoMa" || ' ' || u."apellidoPa", ', ') as nombremaestro,
+    g.nombre as gruponombre,
+    g."idCarrera" as idcarrera,
+    m.nombre as nombremateria,
+    s.nombre as nombresalon,
+    s.edificio as nombreedificio
+FROM 
+    clase c
+LEFT JOIN 
+    usuario u ON c."idUsuarioMaestro" = u.id
+LEFT JOIN 
+    grupo g ON c."idGrupo" = g.id
+LEFT JOIN 
+    materia m ON c."idMateria" = m.id
+LEFT JOIN 
+    salon s ON c."idSalon" = s.id
+GROUP BY 
+    c.id,
+    c.status,
+    c.inicio,
+    c.final,
+    c.dia,
+    c."idUsuarioMaestro",
+    c."idGrupo",
+    c."idMateria",
+    c."idSalon",
+    g.id,
+    g.nombre,
+    g."idCarrera",
+    m.id,
+    m.nombre,
+    s.nombre,
+    s.edificio;
+
+SELECT * from get_clases WHERE idclase = 1 ORDER BY idclase;
+
+ select * from clase;
+
+
+
+DROP PROCEDURE verificar_disponibilidad_salon;
+CREATE OR REPLACE PROCEDURE verificar_disponibilidad_salon(
+    p_id_salon INT,
+    p_dia INT
+)
+LANGUAGE plpgsql
+AS $$
+DECLARE
+    v_horas_disponibles TEXT := '';
+    v_hora INTEGER;
+    v_salon_activo BOOLEAN;
+BEGIN
+    -- Verificar si el salón está activo
+    SELECT EXISTS (
+        SELECT 1
+        FROM salon
+        WHERE id = p_id_salon AND status = 1
+    ) INTO v_salon_activo;
+    
+    -- Si el salón no está activo, devolver mensaje
+    IF NOT v_salon_activo THEN
+        RAISE NOTICE 'El salón % no está activo.', p_id_salon;
+        RETURN;
+    END IF;
+    
+    -- Verificar si hay clases programadas para el salón y el día especificados
+    IF NOT EXISTS (
+        SELECT 1
+        FROM clase c
+        WHERE c."idSalon" = p_id_salon
+          AND c.dia = p_dia
+    ) THEN
+        -- Si no hay clases, todas las horas están disponibles
+        FOR v_hora IN 7..20 LOOP
+            v_horas_disponibles := v_horas_disponibles || 
+                LPAD(v_hora::TEXT, 2, '0') || ':00:00, ';
+        END LOOP;
+    ELSE
+        -- Si hay clases, verificar cada hora entre 7 AM y 8 PM
+        FOR v_hora IN 7..20 LOOP
+            -- Verificar si hay clases programadas en esa hora
+            IF NOT EXISTS (
+                SELECT 1
+                FROM clase c
+                WHERE c."idSalon" = p_id_salon
+                  AND c.dia = p_dia
+                  AND (
+                      (c.inicio < make_time(v_hora + 1, 0, 0) AND c.final > make_time(v_hora, 0, 0))
+                  )
+            ) THEN
+                -- Si no hay clases, agregar la hora a las horas disponibles
+                v_horas_disponibles := v_horas_disponibles || 
+                    LPAD(v_hora::TEXT, 2, '0') || ':00:00, ';
+            END IF;
+        END LOOP;
+    END IF;
+
+    -- Eliminar la última coma y espacio
+    IF v_horas_disponibles <> '' THEN
+        v_horas_disponibles := left(v_horas_disponibles, length(v_horas_disponibles) - 2);
+    END IF;
+
+    -- Devolver las horas disponibles
+    IF v_horas_disponibles = '' THEN
+        RAISE NOTICE 'No hay horas disponibles para el salón % en el día %.', p_id_salon, p_dia;
+    ELSE
+        RAISE NOTICE 'Horas disponibles para el salón % en el día %: %', p_id_salon, p_dia, v_horas_disponibles;
+    END IF;
+END;
+$$;
+CALL verificar_disponibilidad_salon(1, 2);  -- Ejemplo: salón 1, martes (2)
