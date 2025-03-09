@@ -244,4 +244,4 @@ BEGIN
     END IF;
 END;
 $$;
-CALL verificar_disponibilidad_salon(1, 2);  -- Ejemplo: salón 1, martes (2)
+CALL verificar_disponibilidad_salon(1, 1);  -- Ejemplo: salón 1, martes (2)

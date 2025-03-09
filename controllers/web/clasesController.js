@@ -121,9 +121,46 @@ exports.updateClases = (req, res) => {
 }
 
 exports.searchClases = (req, res) => {
+    const {idUsuario, token, busqueda} =req.body;
 
+    if(!idUsuario){
+        return res.status(400).json({message : 'El id del usuario es necesario'})
+    }
+    if(!token){
+        return res.status(400).json({message : 'El token del usuario es necesario'})
+    }
+
+    jwtConfig.validateToken(idUsuario, token, (results) => {
+        if (!results.valid) {
+            return res.status(401).json({message : 'EL token no coinicide o esta vencido'})
+        }
+
+        if (!busqueda) {
+            return res.status(401).json({message : 'EL campo busqueda es necesario'})
+        }
+
+        const query = `SELECT * 
+                        FROM get_clases 
+                        WHERE nombremaestro ILIKE $1
+                        OR gruponombre ILIKE $1
+                        OR nombremateria ILIKE $1 
+                        ORDER BY idclase;`
+
+        const searchTerm = `%${busqueda}%`
+
+        db.query(query, [searchTerm], (err,results) => {
+            if (err) {
+                return res.status(500).json({message : `Error en el servidor: ${err}`})
+            }
+
+            if (results.rowCount === 0) {
+                return res.status(301).json({message : 'No se encontraron registros'})
+            }
+
+            return res.status(200).json(results.rows);
+        })
+    })
 }
-
 
 //info crud 
 
