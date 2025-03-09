@@ -121,46 +121,56 @@ exports.updateClases = (req, res) => {
 }
 
 exports.searchClases = (req, res) => {
-    const {idUsuario, token, busqueda} =req.body;
+    const { idUsuario, token, busqueda } = req.body;
 
-    if(!idUsuario){
-        return res.status(400).json({message : 'El id del usuario es necesario'})
+    // Validación de parámetros
+    if (!idUsuario) {
+        return res.status(400).json({ message: 'El id del usuario es necesario' });
     }
-    if(!token){
-        return res.status(400).json({message : 'El token del usuario es necesario'})
+    if (!token) {
+        return res.status(400).json({ message: 'El token del usuario es necesario' });
+    }
+    if (!busqueda) {
+        return res.status(400).json({ message: 'El campo busqueda es necesario' });
     }
 
+    // Validar el token
     jwtConfig.validateToken(idUsuario, token, (results) => {
         if (!results.valid) {
-            return res.status(401).json({message : 'EL token no coinicide o esta vencido'})
+            return res.status(401).json({ message: 'El token no coincide o está vencido' });
         }
 
-        if (!busqueda) {
-            return res.status(401).json({message : 'EL campo busqueda es necesario'})
-        }
+        // Consulta SQL
+        const query = `
+            SELECT * 
+            FROM get_clases 
+            WHERE nombremaestro ILIKE $1
+            OR gruponombre ILIKE $1
+            OR nombremateria ILIKE $1 
+            ORDER BY idclase;`;
 
-        const query = `SELECT * 
-                        FROM get_clases 
-                        WHERE nombremaestro ILIKE $1
-                        OR gruponombre ILIKE $1
-                        OR nombremateria ILIKE $1 
-                        ORDER BY idclase;`
+        const searchTerm = `%${busqueda}%`;
 
-        const searchTerm = `%${busqueda}%`
-
-        db.query(query, [searchTerm], (err,results) => {
+        // Ejecutar la consulta
+        db.query(query, [searchTerm], (err, results) => {
             if (err) {
-                return res.status(500).json({message : `Error en el servidor: ${err}`})
+                console.error(`Error en la consulta: ${err.message}`); // Log de error en el servidor
+                return res.status(500).json({ message: 'Error en el servidor. Intente más tarde.' });
             }
 
+            // Manejo de resultados
             if (results.rowCount === 0) {
-                return res.status(301).json({message : 'No se encontraron registros'})
+                return res.status(404).json({ message: 'No se encontraron registros' }); // Cambiado a 404
             }
 
-            return res.status(200).json(results.rows);
-        })
-    })
-}
+            // Respuesta exitosa
+            return res.status(200).json({
+                message: 'Registros encontrados',
+                data: results.rows
+            });
+        });
+    });
+};
 
 //info crud 
 
@@ -179,8 +189,8 @@ exports.getMateriasActivas = (req, res) => {
                 return res.status(500).json({ message: 'Error en el servidor' });
             }
 
-            if(results.rowCount === 0){
-                return res.status(500).json({message : "No se encontraron registros"})
+            if (results.rowCount === 0) {
+                return res.status(500).json({ message: "No se encontraron registros" })
             }
 
             return res.status(200).json(results.rows);
@@ -203,8 +213,8 @@ exports.getGruposActivos = (req, res) => {
                 return res.status(500).json({ message: 'Error en el servidor' });
             }
 
-            if(result.rowCount === 0){
-                return res.status(500).json({message : "No se encontraron registros"})
+            if (result.rowCount === 0) {
+                return res.status(500).json({ message: "No se encontraron registros" })
             }
 
             return res.status(200).json(result.rows);
@@ -240,8 +250,8 @@ ORDER BY
                 return res.status(500).json({ message: 'Error en el servidor' });
             }
 
-            if(result.rowCount === 0){
-                return res.status(500).json({message : "No se encontraron registros"})
+            if (result.rowCount === 0) {
+                return res.status(500).json({ message: "No se encontraron registros" })
             }
 
             return res.status(200).json(result.rows);
@@ -250,7 +260,7 @@ ORDER BY
 }
 
 
-exports.getSalonesActivos = (req,res) => {
+exports.getSalonesActivos = (req, res) => {
     const { idUsuario, token } = req.body;
 
     jwtConfig.validateToken(idUsuario, token, (results) => {
@@ -271,8 +281,8 @@ ORDER BY id
                 return res.status(500).json({ message: 'Error en el servidor' });
             }
 
-            if(result.rowCount === 0){
-                return res.status(500).json({message : "No se encontraron registros"})
+            if (result.rowCount === 0) {
+                return res.status(500).json({ message: "No se encontraron registros" })
             }
 
             return res.status(200).json(result.rows);
