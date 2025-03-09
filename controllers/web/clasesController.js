@@ -34,7 +34,7 @@ exports.getClases = (req, res) => {
 }
 
 exports.getClasesByid = (req, res) => {
-    const { idUsuario, token , idClase} = req.body;
+    const { idUsuario, token, idClase } = req.body;
 
     if (!idUsuario) {
         return res.status(400).json({ message: 'El id de usuario es requerido' })
@@ -50,12 +50,12 @@ exports.getClasesByid = (req, res) => {
         }
 
         if (!idClase) {
-            return res.status(400).json({message : 'El id de clase es necesario'})
+            return res.status(400).json({ message: 'El id de clase es necesario' })
         }
 
         const query = 'SELECT * from get_clases WHERE idclase = $1 ORDER BY idclase'
 
-        db.query(query, [idClase] ,(err, results) => {
+        db.query(query, [idClase], (err, results) => {
             if (err) {
                 return res.status(500).json({ message: `Error en el servidor ${err}` })
             }
@@ -122,4 +122,123 @@ exports.updateClases = (req, res) => {
 
 exports.searchClases = (req, res) => {
 
+}
+
+
+//info crud 
+
+exports.getMateriasActivas = (req, res) => {
+    const { idUsuario, token } = req.body;
+
+    jwtConfig.validateToken(idUsuario, token, (results) => {
+        if (!results.valid) {
+            return res.status(401).json({ message: results.error });
+        }
+
+        const query = 'SELECT * FROM materia where status = 1 ORDER BY id';
+
+        db.query(query, (err, results) => {
+            if (err) {
+                return res.status(500).json({ message: 'Error en el servidor' });
+            }
+
+            if(results.rowCount === 0){
+                return res.status(500).json({message : "No se encontraron registros"})
+            }
+
+            return res.status(200).json(results.rows);
+        });
+    });
+}
+
+exports.getGruposActivos = (req, res) => {
+    const { idUsuario, token } = req.body;
+
+    jwtConfig.validateToken(idUsuario, token, (results) => {
+        if (!results.valid) {
+            return res.status(401).json({ message: results.error });
+        }
+
+        const query = 'select * from grupo WHERE status = 1 ORDER BY id'
+
+        db.query(query, (err, result) => {
+            if (err) {
+                return res.status(500).json({ message: 'Error en el servidor' });
+            }
+
+            if(result.rowCount === 0){
+                return res.status(500).json({message : "No se encontraron registros"})
+            }
+
+            return res.status(200).json(result.rows);
+        })
+    })
+}
+
+exports.getMaestrosActivos = (req, res) => {
+    const { idUsuario, token } = req.body;
+
+    jwtConfig.validateToken(idUsuario, token, (results) => {
+        if (!results.valid) {
+            return res.status(401).json({ message: results.error });
+        }
+
+        const query = `SELECT 
+    "id",
+    string_agg(nombre || ' ' || "apellidoPa" || ' ' || "apellidoMa", ', ') as nombremaestro,
+    "correo",
+    "tipo",
+    "status" 
+FROM 
+    usuario 
+WHERE 
+    tipo = 2 AND status = 1 
+GROUP BY 
+    "id", "nombre", "apellidoMa", "apellidoPa", "correo", "tipo", "status"
+ORDER BY 
+    "id";`
+
+        db.query(query, (err, result) => {
+            if (err) {
+                return res.status(500).json({ message: 'Error en el servidor' });
+            }
+
+            if(result.rowCount === 0){
+                return res.status(500).json({message : "No se encontraron registros"})
+            }
+
+            return res.status(200).json(result.rows);
+        })
+    })
+}
+
+
+exports.getSalonesActivos = (req,res) => {
+    const { idUsuario, token } = req.body;
+
+    jwtConfig.validateToken(idUsuario, token, (results) => {
+        if (!results.valid) {
+            return res.status(401).json({ message: results.error });
+        }
+
+        const query = `SELECT 
+    id,
+    string_agg(nombre || ' (Edificio: ' || edificio || ')', ', ')
+from salon 
+where status = 1 
+GROUP BY id
+ORDER BY id
+`
+        db.query(query, (err, result) => {
+            if (err) {
+                return res.status(500).json({ message: 'Error en el servidor' });
+            }
+
+            if(result.rowCount === 0){
+                return res.status(500).json({message : "No se encontraron registros"})
+            }
+
+            return res.status(200).json(result.rows);
+        })
+    })
 }

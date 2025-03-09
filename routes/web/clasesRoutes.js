@@ -8,4 +8,11 @@ router.post('/addClase', clasesController.addClases);
 router.put('/updateClase', clasesController.updateClases);
 router.post('/searchClase', clasesController.searchClases);
 
+
+//info alta
+router.post('/getMateriasActivas', clasesController.getMateriasActivas);
+router.post('/getGruposActivos', clasesController.getGruposActivos);
+router.post('/getMaestrosActivos', clasesController.getMaestrosActivos);
+router.post('/getSalonesActivos', clasesController.getSalonesActivos);
+
 module.exports = router;
