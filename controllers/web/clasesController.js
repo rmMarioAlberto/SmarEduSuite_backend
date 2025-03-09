@@ -223,7 +223,7 @@ exports.getSalonesActivos = (req,res) => {
 
         const query = `SELECT 
     id,
-    string_agg(nombre || ' (Edificio: ' || edificio || ')', ', ')
+    string_agg(nombre || ' (Edificio: ' || edificio || ')', ', ') as salon
 from salon 
 where status = 1 
 GROUP BY id
