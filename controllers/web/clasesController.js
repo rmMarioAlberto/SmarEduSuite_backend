@@ -268,8 +268,6 @@ exports.searchClases = (req, res) => {
     });
 };
 
-//info crud 
-
 exports.getMateriasActivas = (req, res) => {
     const { idUsuario, token } = req.body;
 
@@ -355,7 +353,6 @@ ORDER BY
     })
 }
 
-
 exports.getSalonesActivos = (req, res) => {
     const { idUsuario, token } = req.body;
 
@@ -385,7 +382,6 @@ ORDER BY id
         })
     })
 }
-
 
 exports.getHoras = (req, res) => {
     const { idUsuario, token, p_id_salon, p_dia } = req.body;
