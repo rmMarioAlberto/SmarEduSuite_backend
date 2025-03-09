@@ -122,7 +122,7 @@ exports.addClases = (req, res) => {
             if (err) {
                 return res.status(500).json({ message: `Error en el servidor: ${err.message}` });
             }
-            
+
             // Verificar si la inserción fue exitosa
             if (results.rowCount > 0) {
                 return res.status(200).json({ message: 'Clase creada exitosamente' });
@@ -135,8 +135,86 @@ exports.addClases = (req, res) => {
 
 
 exports.updateClases = (req, res) => {
+    const { idClase, status, inicio, final, dia, idMaestro, idGrupo, idMateria, idSalon, idCreate, token } = req.body;
 
-}
+    // Validaciones iniciales
+    if (!idCreate) {
+        return res.status(400).json({ message: 'El id del usuario es necesario' });
+    }
+
+    if (!token) {
+        return res.status(400).json({ message: 'El token del usuario es necesario' });
+    }
+
+    // Validar el token
+    jwtConfig.validateToken(idCreate, token, (results) => {
+        if (!results.valid) {
+            return res.status(401).json({ message: 'El token del usuario no es valido o esta vencido' });
+        }
+
+        if (!idClase) {
+            return res.status(400).json({ message: 'El id de la clase es necesario' });
+        }
+
+        // Construir la consulta de actualización dinámicamente
+        let query = 'UPDATE clase SET ';
+        const fields = [];
+        const values = [];
+
+        if (status !== undefined) {
+            fields.push('status = $' + (fields.length + 1));
+            values.push(status);
+        }
+        if (inicio !== undefined) {
+            fields.push('inicio = $' + (fields.length + 1));
+            values.push(inicio);
+        }
+        if (final !== undefined) {
+            fields.push('final = $' + (fields.length + 1));
+            values.push(final);
+        }
+        if (dia !== undefined) {
+            fields.push('dia = $' + (fields.length + 1));
+            values.push(dia);
+        }
+        if (idMaestro !== undefined) {
+            fields.push('"idUsuarioMaestro" = $' + (fields.length + 1));
+            values.push(idMaestro);
+        }
+        if (idGrupo !== undefined) {
+            fields.push('"idGrupo" = $' + (fields.length + 1));
+            values.push(idGrupo);
+        }
+        if (idMateria !== undefined) {
+            fields.push('"idMateria" = $' + (fields.length + 1));
+            values.push(idMateria);
+        }
+        if (idSalon !== undefined) {
+            fields.push('"idSalon" = $' + (fields.length + 1));
+            values.push(idSalon);
+        }
+
+        if (fields.length === 0) {
+            return res.status(400).json({ message: 'No se proporcionaron campos para actualizar' });
+        }
+
+        query += fields.join(', ') + ' WHERE id = $' + (fields.length + 1);
+        values.push(idClase);
+
+        // Ejecutar la consulta
+        db.query(query, values, (err, results) => {
+            if (err) {
+                return res.status(500).json({ message: `Error en el servidor: ${err.message}` });
+            }
+
+            if (results.rowCount > 0) {
+                return res.status(200).json({ message: 'Clase actualizada exitosamente' });
+            } else {
+                return res.status(404).json({ message: 'No se encontró la clase para actualizar' });
+            }
+        });
+    });
+};
 
 exports.searchClases = (req, res) => {
     const { idUsuario, token, busqueda } = req.body;
