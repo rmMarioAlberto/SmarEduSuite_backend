@@ -342,3 +342,54 @@ END;
 $$;
 
 SELECT verificar_disponibilidad_salon_2(1, 2);
+
+
+select * from grupo;
+
+
+
+
+/*triggers*/
+
+
+-- Primero, creamos la función que será llamada por el trigger
+CREATE OR REPLACE FUNCTION sincronizar_status_alumnos_con_grupo()
+RETURNS TRIGGER AS $$
+BEGIN
+    -- Verifica si el status del grupo ha cambiado
+    IF NEW.status <> OLD.status THEN
+        -- Actualiza el status de todos los alumnos del grupo para que coincida con el nuevo status del grupo
+        UPDATE usuario
+        SET status = NEW.status
+        WHERE "idGrupo" = NEW.id;
+        
+        -- Opcional: Registrar el cambio en una tabla de logs o mostrar una notificación
+        RAISE NOTICE 'Se actualizó el status de los alumnos del grupo % de % a %', 
+                     NEW.id, OLD.status, NEW.status;
+    END IF;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Luego, creamos el trigger que ejecutará la función
+CREATE TRIGGER sincronizar_status_alumnos_con_grupo
+AFTER UPDATE OF status ON grupo
+FOR EACH ROW
+WHEN (NEW.status <> OLD.status)
+EXECUTE FUNCTION sincronizar_status_alumnos_con_grupo();
+
+DROP Trigger sincronizar_status_alumnos_con_grupo on grupo;
+
+drop FUNCTION sincronizar_status_alumnos_con_grupo;
+
+-- Desactivar un grupo (status = 0)
+UPDATE grupo SET status = 0 WHERE id = 2;
+
+-- Verificar que los alumnos del grupo también se desactivaron
+SELECT * FROM usuario WHERE "idGrupo" = 2;
+
+-- Activar el grupo nuevamente (status = 1)
+UPDATE grupo SET status = 1 WHERE id = 2;
+
+-- Verificar que los alumnos del grupo también se activaron
+SELECT * FROM usuario WHERE "idGrupo" = 2;
