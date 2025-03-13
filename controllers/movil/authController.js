@@ -46,11 +46,10 @@ exports.loginMovil = (req, res) => {
 
         // Validar el token actual
         jwtConfig.validateTokenMovil(user.id, user.token_movil, (result) => {
-            /* 
+            
             if (result.valid) {
                 return res.status(409).json({ message: 'Ya hay una sesión activa' });
             } 
-            */
 
             if (user.contra === null) {
                 return res.status(300).json({ message: "Primer login", user: filteredUser });
