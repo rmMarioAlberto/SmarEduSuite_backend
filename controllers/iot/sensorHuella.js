@@ -38,7 +38,7 @@ exports.startClass = async (req, res) => {
         const classResult = await db.query(classQuery, [idSalon, currentHour, currentDay]);
 
         if (classResult.rowCount === 0) {
-            return res.status(404).json({ message: `No hay clase activa en este momento: ${currentHour}` });
+            return res.status(404).json({ message: `No hay clase activa en este momento: ${currentHour} ; ${currentDay}` });
         }
 
         const clase = classResult.rows[0];
