@@ -11,9 +11,6 @@ exports.registrarTemperatura = async (req, res) => {
     if (!clase) {
         return res.status(400).json({message : 'El estado de la clase es necesario'})
     }
-    if (!ventana) {
-        return res.status(400).json({message : 'El estado de la ventana es necesario'})
-    }
     if (!temperatura) {
         return res.status(400).json({message : 'La temperatura del sensor es necesario'})
     }
