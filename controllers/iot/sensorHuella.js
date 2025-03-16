@@ -13,7 +13,6 @@ exports.startClass = async (req, res) => {
     }
 
     try {
-        // Verificar que el salón existe
         const salonQuery = 'SELECT * FROM salon WHERE id = $1';
         const salonResult = await db.query(salonQuery, [idSalon]);
 
@@ -21,14 +20,11 @@ exports.startClass = async (req, res) => {
             return res.status(404).json({ message: 'Salón no encontrado' });
         }
 
-        // Obtener la hora actual en formato HH:MM:SS
         const now = new Date();
-        const currentHour = now.toTimeString().split(' ')[0]; // Obtiene "HH:MM:SS"
+        const currentHour = now.toTimeString().split(' ')[0]; 
 
-        // Obtener el día de la semana ajustado
-        const currentDay = (now.getDay() + 6) % 7 + 1; // Ajustar para que 1 sea lunes y 7 sea domingo
+        const currentDay = (now.getDay() + 6) % 7 + 1; 
 
-        // Verificar si hay una clase activa en el salón
         const classQuery = `
             SELECT * FROM clase 
             WHERE "idSalon" = $1 
@@ -43,7 +39,6 @@ exports.startClass = async (req, res) => {
 
         const clase = classResult.rows[0];
 
-        // Verificar que la huella corresponde al maestro de la clase
         const userQuery = 'SELECT * FROM usuario WHERE huella = $1 AND id = $2';
         const userResult = await db.query(userQuery, [huella, clase.idUsuarioMaestro]);
 
@@ -51,7 +46,6 @@ exports.startClass = async (req, res) => {
             return res.status(401).json({ message: 'Huella no corresponde al maestro de la clase' });
         }
 
-        // Insertar un nuevo documento en MongoDB
         const newClass = {
             estado: 1,
             fechaStart: now,
@@ -63,7 +57,6 @@ exports.startClass = async (req, res) => {
         const collection = client.db(dbName).collection(collectionName);
         const insertResult = await collection.insertOne(newClass);
 
-        // Devolver el ObjectId del documento insertado
         res.status(201).json({ message: 'Clase iniciada', id: insertResult.insertedId });
     } catch (err) {
         res.status(500).json({ message: `Error en el servidor: ${err.message}` });

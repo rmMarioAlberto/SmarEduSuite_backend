@@ -25,6 +25,7 @@ const crudClases =require('./routes/web/clasesRoutes')
 // IoT
 const tempRoutes = require('./routes/iot/tempRoutes');
 const huellaRoutes = require('./routes/iot/huellaRoutes');
+const luzRoutes = require('./routes/iot/luzRoutes')
 
 //movil
 const authMovil = require('./routes/movil/authRoutes')
@@ -55,6 +56,7 @@ app.use('/web/crudClase', crudClases)
 // IoT
 app.use('/iot/temperatura', tempRoutes);
 app.use('/iot/huella', huellaRoutes);
+app.use('/iot/luz', luzRoutes)
 
 //movil
 app.use('/movil', authMovil)
