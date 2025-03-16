@@ -15,7 +15,7 @@ exports.registrarLuz = async (req,res) => {
         return res.status(400).json({message : 'El estado del foco es necesario'})
     }
     if (!porcentaje) {
-        return res.status(400).json({message : 'El porcentaje del foco es necesario'})
+        return res.status(400).json({message : 'El porcentaje del sensor de luz es necesario'})
     }
 
     try {
