@@ -22,6 +22,7 @@ const graficas = require('./routes/web/graficaRoutes');
 const crudAlumno = require('./routes/web/alumnoRoutes');
 const crudClases =require('./routes/web/clasesRoutes');
 const reportesweb = require('./routes/web/reporteRoutes');
+const horarioMaestro = require('./routes/web/horarioMaestroRoutes')
 
 // IoT
 const tempRoutes = require('./routes/iot/tempRoutes');
@@ -54,6 +55,7 @@ app.use('/web/graficas', graficas);
 app.use('/web/crudAlumno', crudAlumno);
 app.use('/web/crudClase', crudClases);
 app.use('/web/reportes', reportesweb);
+app.use('/web/horarioMaestro' , horarioMaestro)
 
 // IoT
 app.use('/iot/temperatura', tempRoutes);

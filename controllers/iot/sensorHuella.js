@@ -5,6 +5,8 @@ const collectionName = 'puerta';
 
 const { ObjectId } = require('mongodb'); 
 
+const { generateQRCode } = require('../../config/qrServices'); // Asegúrate de que la ruta sea correcta
+
 exports.startClass = async (req, res) => {
     const { huella, idSalon } = req.body;
 
@@ -22,7 +24,6 @@ exports.startClass = async (req, res) => {
 
         const now = new Date();
         const currentHour = now.toTimeString().split(' ')[0]; 
-
         const currentDay = (now.getDay() + 6) % 7 + 1; 
 
         const classQuery = `
@@ -46,12 +47,18 @@ exports.startClass = async (req, res) => {
             return res.status(401).json({ message: 'Huella no corresponde al maestro de la clase' });
         }
 
+        // Generar el código QR
+        const validDuration = 60; // Duración válida en minutos
+        const qrCodeBase64 = await generateQRCode(clase.id, now.toISOString(), validDuration);
+
         const newClass = {
             estado: 1,
             fechaStart: now,
             fechaEnd: null,
             idClase: clase.id,
-            idSalon: idSalon
+            idSalon: idSalon,
+            qrCode: qrCodeBase64 ,
+            idMaestro : clase.idUsuarioMaestro
         };
 
         const collection = client.db(dbName).collection(collectionName);
@@ -62,7 +69,6 @@ exports.startClass = async (req, res) => {
         res.status(500).json({ message: `Error en el servidor: ${err.message}` });
     }
 };
-
 
 exports.endClass = async (req, res) => {
     const { id, huella } = req.body;
