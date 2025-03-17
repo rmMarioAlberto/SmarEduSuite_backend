@@ -116,7 +116,13 @@ exports.getClasesActivas = async (req, res) => {
                     return res.status(500).json({ message: 'Error en el servidor', err });
                 }
 
-                return res.status(200).json(results.rows);
+                // Combinar los datos de MongoDB y la base de datos relacional
+                const combinedData = {
+                    ...activeClasses[0], // Datos de MongoDB
+                    ...results.rows[0]   // Datos de la base de datos relacional
+                };
+
+                return res.status(200).json(combinedData);
             });
 
         } catch (err) {
@@ -125,7 +131,6 @@ exports.getClasesActivas = async (req, res) => {
         }
     });
 };
-
 
 const getDayOfWeek = () => {
     const now = new Date();
