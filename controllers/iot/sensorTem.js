@@ -33,14 +33,3 @@ exports.registrarTemperatura = async (req, res) => {
         res.status(500).json({ message: 'Error al registrar la temperatura', error });
     }
 };
-
-{/**
-    {
-    _id:ObjectId(123),
-    idSalon: 1, //salon del registro (id)
-    clase: 1,  //id hay clase activa(1= si, 2 = no)
-    ventana:1, //si estan las ventanas activas o no (1= activo, 0= inactivas)
-    temperatura: 20.21, //temperatura del sesnor
-    fecha: ISO Date,
-}
-    */}

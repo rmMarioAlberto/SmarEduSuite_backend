@@ -40,13 +40,3 @@ exports.registrarLuz = async (req,res) => {
         })
     }
 }
-
-
-{/*{
-    _id:ObjectId(123),
-    idSalon: 1, //salon del registro (id)
-    clase:1,    //si hay clase activa o no (1= si , 2= no)
-    foco: 1,  //si esta el foco activo o no(1= activa, 0= inactiva)
-    porcentaje:0,   //porcebntaje de luz que detecta el sensor (0 - 4095 del sensor)
-    fecha:IsoDate,
-} */}
