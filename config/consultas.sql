@@ -257,7 +257,6 @@ AS $$
 DECLARE
     resultado JSON;
 BEGIN
-    -- Combinar toda la lógica en una sola consulta eficiente
     WITH salon_info AS (
         SELECT id, nombre, status
         FROM salon
