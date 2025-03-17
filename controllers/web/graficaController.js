@@ -69,7 +69,7 @@ exports.tempGrafica = (req, res) => {
                         _id: 1,
                         idSalon: 1,
                         clase: 1,
-                        estado: 1,
+                        ventana: 1,
                         temperatura: 1,
                         fecha: 1,
                         fechaFormateada: { 
