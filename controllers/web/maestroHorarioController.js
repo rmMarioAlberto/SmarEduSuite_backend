@@ -22,7 +22,28 @@ exports.getHorarioMaestro = async (req, res) => {
         const dia = getDayOfWeek();
 
         try {
-            const query = 'SELECT * FROM clase WHERE "idUsuarioMaestro" = $1 AND dia = $2;';
+            const query = `SELECT 
+                                c.id AS "idclase",
+                                c.inicio AS "inicioclase",
+                                c.final AS "finalclase",
+                                g.id AS "idgrupo",
+                                g.nombre AS "gruponombre",
+                                m.id AS "idmateria",
+                                m.nombre AS "nombremateria",
+                                s.id AS "salonid",
+                                string_agg(s.nombre || ' (Edificio: ' || s.edificio || ')', ', ') AS "salonnombre"
+                            FROM 
+                                clase c
+                            INNER JOIN 
+                                grupo g ON g.id = c."idGrupo"
+                            INNER JOIN 
+                                materia m ON m.id = c."idMateria"
+                            INNER JOIN 
+                                salon s ON s.id = c."idSalon"
+                            WHERE 
+                                c."idUsuarioMaestro" = $1 AND c.dia = $2
+                            GROUP BY 
+                                c.id, g.id, m.id, s.id;`;
             const { rows } = await db.query(query, [idUsuario, dia]);
 
             res.status(200).json({ clases: rows });
@@ -59,7 +80,45 @@ exports.getClasesActivas = async (req, res) => {
                 idMaestro: idUsuarioInt
             }).toArray();
 
-            res.status(200).json({ clasesActivas: activeClasses });
+            if (activeClasses.length === 0) {
+                return res.status(404).json({ message: 'No hay clases activas' });
+            }
+
+            // Si esperas solo una clase activa, accede al primer elemento
+            const idClase = activeClasses[0].idClase;
+
+            const query2 = `
+                SELECT 
+                    c.id AS "idclase",
+                    c.inicio AS "inicioclase",
+                    c.final AS "finalclase",
+                    g.id AS "idgrupo",
+                    g.nombre AS "gruponombre",
+                    m.id AS "idmateria",
+                    m.nombre AS "nombremateria",
+                    s.id AS "salonid",
+                    string_agg(s.nombre || ' (Edificio: ' || s.edificio || ')', ', ') AS "salonnombre"
+                FROM 
+                    clase c
+                INNER JOIN 
+                    grupo g ON g.id = c."idGrupo"
+                INNER JOIN 
+                    materia m ON m.id = c."idMateria"
+                INNER JOIN 
+                    salon s ON s.id = c."idSalon"
+                WHERE 
+                    c.id = $1
+                GROUP BY 
+                    c.id, g.id, m.id, s.id;`;
+
+            db.query(query2, [idClase], (err, results) => {
+                if (err) {
+                    return res.status(500).json({ message: 'Error en el servidor', err });
+                }
+
+                return res.status(200).json(results.rows);
+            });
+
         } catch (err) {
             console.error('Error en la consulta de clases activas:', err);
             res.status(500).json({ message: 'Error en el servidor' });
@@ -70,5 +129,5 @@ exports.getClasesActivas = async (req, res) => {
 
 const getDayOfWeek = () => {
     const now = new Date();
-    return (now.getDay() + 6) % 7 + 1; 
+    return (now.getDay() + 6) % 7 + 1;
 };
