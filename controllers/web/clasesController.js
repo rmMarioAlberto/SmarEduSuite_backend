@@ -113,26 +113,25 @@ exports.addClases = (req, res) => {
             return res.status(400).json({ message: 'El id del salon de la clase es necesario' });
         }
 
-        // Consulta de inserción
-        const query = `INSERT INTO clase 
-                        (status, inicio, final, dia, "idUsuarioMaestro", "idGrupo", "idMateria", "idSalon")
-                        VALUES ($1, $2, $3, $4, $5, $6, $7, $8);`;
+        // Llamada al procedimiento almacenado
+        const query = `SELECT add_clase($1, $2, $3, $4, $5, $6, $7, $8) AS result;`;
 
         db.query(query, [status, inicio, final, dia, idMaestro, idGrupo, idMateria, idSalon], (err, results) => {
             if (err) {
                 return res.status(500).json({ message: `Error en el servidor: ${err.message}` });
             }
 
-            // Verificar si la inserción fue exitosa
-            if (results.rowCount > 0) {
-                return res.status(200).json({ message: 'Clase creada exitosamente' });
+            const resultMessage = results.rows[0].result;
+
+            // Verificar el mensaje de retorno del procedimiento
+            if (resultMessage === 'Clase creada exitosamente') {
+                return res.status(200).json({ message: resultMessage });
             } else {
-                return res.status(500).json({ message: 'No se pudo crear la clase' });
+                return res.status(400).json({ message: resultMessage });
             }
         });
     });
 };
-
 
 exports.updateClases = (req, res) => {
     const { idClase, status, inicio, final, dia, idMaestro, idGrupo, idMateria, idSalon, idCreate, token } = req.body;
@@ -149,68 +148,28 @@ exports.updateClases = (req, res) => {
     // Validar el token
     jwtConfig.validateToken(idCreate, token, (results) => {
         if (!results.valid) {
-            return res.status(401).json({ message: 'El token del usuario no es valido o esta vencido' });
+            return res.status(401).json({ message: ' El token del usuario no es valido o esta vencido' });
         }
 
         if (!idClase) {
             return res.status(400).json({ message: 'El id de la clase es necesario' });
         }
 
-        // Construir la consulta de actualización dinámicamente
-        let query = 'UPDATE clase SET ';
-        const fields = [];
-        const values = [];
+        // Llamada al procedimiento almacenado para validar y actualizar
+        const query = `SELECT update_clase($1, $2, $3, $4, $5, $6, $7, $8, $9) AS result;`;
 
-        if (status !== undefined) {
-            fields.push('status = $' + (fields.length + 1));
-            values.push(status);
-        }
-        if (inicio !== undefined) {
-            fields.push('inicio = $' + (fields.length + 1));
-            values.push(inicio);
-        }
-        if (final !== undefined) {
-            fields.push('final = $' + (fields.length + 1));
-            values.push(final);
-        }
-        if (dia !== undefined) {
-            fields.push('dia = $' + (fields.length + 1));
-            values.push(dia);
-        }
-        if (idMaestro !== undefined) {
-            fields.push('"idUsuarioMaestro" = $' + (fields.length + 1));
-            values.push(idMaestro);
-        }
-        if (idGrupo !== undefined) {
-            fields.push('"idGrupo" = $' + (fields.length + 1));
-            values.push(idGrupo);
-        }
-        if (idMateria !== undefined) {
-            fields.push('"idMateria" = $' + (fields.length + 1));
-            values.push(idMateria);
-        }
-        if (idSalon !== undefined) {
-            fields.push('"idSalon" = $' + (fields.length + 1));
-            values.push(idSalon);
-        }
-
-        if (fields.length === 0) {
-            return res.status(400).json({ message: 'No se proporcionaron campos para actualizar' });
-        }
-
-        query += fields.join(', ') + ' WHERE id = $' + (fields.length + 1);
-        values.push(idClase);
-
-        // Ejecutar la consulta
-        db.query(query, values, (err, results) => {
+        db.query(query, [idClase, status, inicio, final, dia, idMaestro, idGrupo, idMateria, idSalon], (err, results) => {
             if (err) {
                 return res.status(500).json({ message: `Error en el servidor: ${err.message}` });
             }
 
-            if (results.rowCount > 0) {
-                return res.status(200).json({ message: 'Clase actualizada exitosamente' });
+            const resultMessage = results.rows[0].result;
+
+            // Verificar el mensaje de retorno del procedimiento
+            if (resultMessage === 'Clase actualizada exitosamente') {
+                return res.status(200).json({ message: resultMessage });
             } else {
-                return res.status(404).json({ message: 'No se encontró la clase para actualizar' });
+                return res.status(400).json({ message: resultMessage });
             }
         });
     });
