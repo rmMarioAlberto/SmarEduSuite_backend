@@ -52,6 +52,19 @@ exports.loginMovil = (req, res) => {
             } 
 
             if (user.contra === null) {
+                const tokenmovil =jwtConfig.createToken(user.id, user.correo);
+                const query2 = 'UPDATE usuario SET token_movil = $1 WHERE id = $2';
+
+                db.query(query2, [tokenmovil, user.id], (err, results) => {
+                    if (err) {
+                        return res.status(500).json({ message: 'Error en el servidor' });
+                    }
+                    if (results.rowCount === 0) {
+                        return res.status(404).json({ message: 'Usuario no encontrado' });
+                    }
+                    return res.status(300).json({ message: "Primer login", user: filteredUser, tokenmovil });
+                });
+
                 return res.status(300).json({ message: "Primer login", user: filteredUser });
             } else {
                 if (user.contra !== contra) {
