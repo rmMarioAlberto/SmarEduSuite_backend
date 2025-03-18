@@ -1,5 +1,7 @@
 const QRCode = require('qrcode');
 
+const moment = require('moment-timezone');
+
 // Función para generar un código QR en base64
 const generateQRCode = async (classId, startTime, validDuration) => {
     try {
@@ -33,11 +35,11 @@ const validateQRCode = (qrString) => {
         }
 
         // Validar la duración
-        const currentTime = new Date();
-        const startTime = new Date(qrData.startTime);
-        const validUntil = new Date(startTime.getTime() + qrData.validDuration * 60000);
+        const currentTime = moment.utc(); // Obtener la hora actual en UTC
+        const startTime = moment.utc(qrData.startTime); // Asegurarse de que startTime esté en UTC
+        const validUntil = startTime.clone().add(qrData.validDuration, 'minutes');
 
-        if (currentTime > validUntil) {
+        if (currentTime.isAfter(validUntil)) {
             throw new Error('QR code has expired');
         }
 
