@@ -257,7 +257,6 @@ AS $$
 DECLARE
     resultado JSON;
 BEGIN
-    -- Combinar toda la lógica en una sola consulta eficiente
     WITH salon_info AS (
         SELECT id, nombre, status
         FROM salon
@@ -393,3 +392,176 @@ UPDATE grupo SET status = 1 WHERE id = 2;
 
 -- Verificar que los alumnos del grupo también se activaron
 SELECT * FROM usuario WHERE "idGrupo" = 2;
+
+
+
+/*procedimieto*/
+SELECT add_clase(1, '14:00:00', '15:00:00', 1, 6, 1, 2, 14);
+CREATE OR REPLACE FUNCTION add_clase(
+    p_status INTEGER,
+    p_inicio TIME,
+    p_final TIME,
+    p_dia INTEGER,
+    p_idMaestro INTEGER,
+    p_idGrupo INTEGER,
+    p_idMateria INTEGER,
+    p_idSalon INTEGER
+) RETURNS TEXT AS $$
+DECLARE
+    v_count INTEGER;
+BEGIN
+    PERFORM 1 FROM usuario WHERE id = p_idMaestro AND status = 1 AND tipo = 2;
+    IF NOT FOUND THEN
+        RETURN 'El maestro no existe o no está activo';
+    END IF;
+
+    PERFORM 1 FROM grupo WHERE id = p_idGrupo AND status = 1;
+    IF NOT FOUND THEN
+        RETURN 'El grupo no existe o no está activo';
+    END IF;
+
+    PERFORM 1 FROM materia WHERE id = p_idMateria AND status = 1;
+    IF NOT FOUND THEN
+        RETURN 'La materia no existe o no está activa';
+    END IF;
+
+    PERFORM 1 FROM salon WHERE id = p_idSalon AND status = 1;
+    IF NOT FOUND THEN
+        RETURN 'El salón no existe o no está activo';
+    END IF;
+
+    SELECT COUNT(*) INTO v_count
+    FROM clase
+    WHERE "idUsuarioMaestro" = p_idMaestro
+      AND dia = p_dia
+      AND (p_inicio, p_final) OVERLAPS (inicio, final);
+
+    IF v_count > 0 THEN
+        RETURN 'El maestro ya tiene una clase en este horario';
+    END IF;
+
+    SELECT COUNT(*) INTO v_count
+    FROM clase
+    WHERE "idGrupo" = p_idGrupo
+      AND dia = p_dia
+      AND (p_inicio, p_final) OVERLAPS (inicio, final);
+
+    IF v_count > 0 THEN
+        RETURN 'El grupo ya tiene una clase en este horario';
+    END IF;
+
+    SELECT COUNT(*) INTO v_count
+    FROM clase
+    WHERE "idSalon" = p_idSalon
+      AND dia = p_dia
+      AND (p_inicio, p_final) OVERLAPS (inicio, final);
+
+    IF v_count > 0 THEN
+        RETURN 'El salón ya tiene una clase en este horario';
+    END IF;
+
+    INSERT INTO clase (status, inicio, final, dia, "idUsuarioMaestro", "idGrupo", "idMateria", "idSalon")
+    VALUES (p_status, p_inicio, p_final, p_dia, p_idMaestro, p_idGrupo, p_idMateria, p_idSalon);
+
+    RETURN 'Clase creada exitosamente';
+END;
+$$ LANGUAGE plpgsql;
+
+SELECT update_clase(
+    39,          -- idClase
+    1,          -- status
+    '08:00:00', -- inicio
+    '09:00:00', -- final
+    1,          -- dia
+    50,          -- idMaestro
+    1,          -- idGrupo
+    2,          -- idMateria
+    1           -- idSalon
+) AS result;
+CREATE OR REPLACE FUNCTION update_clase(
+    p_idClase INTEGER,
+    p_status INTEGER,
+    p_inicio TIME,
+    p_final TIME,
+    p_dia INTEGER,
+    p_idMaestro INTEGER,
+    p_idGrupo INTEGER,
+    p_idMateria INTEGER,
+    p_idSalon INTEGER
+) RETURNS TEXT AS $$
+DECLARE
+    v_count INTEGER;
+BEGIN
+    -- Validar que la clase existe
+    PERFORM 1 FROM clase WHERE id = p_idClase;
+    IF NOT FOUND THEN
+        RETURN 'La clase no existe';
+    END IF;
+
+    PERFORM 1 FROM usuario WHERE id = p_idMaestro AND status = 1 AND tipo = 2;
+    IF NOT FOUND THEN
+        RETURN 'El maestro no existe o no está activo';
+    END IF;
+
+    PERFORM 1 FROM grupo WHERE id = p_idGrupo AND status = 1;
+    IF NOT FOUND THEN
+        RETURN 'El grupo no existe o no está activo';
+    END IF;
+
+    PERFORM 1 FROM materia WHERE id = p_idMateria AND status = 1;
+    IF NOT FOUND THEN
+        RETURN 'La materia no existe o no está activa';
+    END IF;
+
+    PERFORM 1 FROM salon WHERE id = p_idSalon AND status = 1;
+    IF NOT FOUND THEN
+        RETURN 'El salón no existe o no está activo';
+    END IF;
+
+    SELECT COUNT(*) INTO v_count
+    FROM clase
+    WHERE "idUsuarioMaestro" = p_idMaestro
+      AND dia = p_dia
+      AND id <> p_idClase
+      AND (p_inicio, p_final) OVERLAPS (inicio, final);
+
+    IF v_count > 0 THEN
+        RETURN 'El maestro ya tiene una clase en este horario';
+    END IF;
+
+    SELECT COUNT(*) INTO v_count
+    FROM clase
+    WHERE "idGrupo" = p_idGrupo
+      AND dia = p_dia
+      AND id <> p_idClase
+      AND (p_inicio, p_final) OVERLAPS (inicio, final);
+
+    IF v_count > 0 THEN
+        RETURN 'El grupo ya tiene una clase en este horario';
+    END IF;
+
+    SELECT COUNT(*) INTO v_count
+    FROM clase
+    WHERE "idSalon" = p_idSalon
+      AND dia = p_dia
+      AND id <> p_idClase
+      AND (p_inicio, p_final) OVERLAPS (inicio, final);
+
+    IF v_count > 0 THEN
+        RETURN 'El salón ya tiene una clase en este horario';
+    END IF;
+
+    UPDATE clase
+    SET status = p_status,
+        inicio = p_inicio,
+        final = p_final,
+        dia = p_dia,
+        "idUsuarioMaestro" = p_idMaestro,
+        "idGrupo" = p_idGrupo,
+        "idMateria" = p_idMateria,
+        "idSalon" = p_idSalon
+    WHERE id = p_idClase;
+
+    RETURN 'Clase actualizada exitosamente';
+END;
+$$ LANGUAGE plpgsql;

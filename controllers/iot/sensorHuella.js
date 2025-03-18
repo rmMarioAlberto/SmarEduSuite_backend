@@ -3,7 +3,9 @@ const client = require('../../config/mongo');
 const dbName = 'SmartEduSuite';
 const collectionName = 'puerta';
 
-const { ObjectId } = require('mongodb'); 
+const { ObjectId } = require('mongodb');
+const { generateQRCode } = require('../../config/qrServices');
+const moment = require('moment-timezone');
 
 exports.startClass = async (req, res) => {
     const { huella, idSalon } = req.body;
@@ -13,7 +15,6 @@ exports.startClass = async (req, res) => {
     }
 
     try {
-        // Verificar que el salón existe
         const salonQuery = 'SELECT * FROM salon WHERE id = $1';
         const salonResult = await db.query(salonQuery, [idSalon]);
 
@@ -21,14 +22,17 @@ exports.startClass = async (req, res) => {
             return res.status(404).json({ message: 'Salón no encontrado' });
         }
 
-        // Obtener la hora actual en formato HH:MM:SS
-        const now = new Date();
-        const currentHour = now.toTimeString().split(' ')[0]; // Obtiene "HH:MM:SS"
+        // Obtener la hora actual en UTC
+        const nowUTC = moment.utc();
+        console.log('Hora actual en UTC:', nowUTC.format());
 
-        // Obtener el día de la semana ajustado
-        const currentDay = (now.getDay() + 6) % 7 + 1; // Ajustar para que 1 sea lunes y 7 sea domingo
+        // Convertir a la hora de México para la lógica de negocio
+        const nowMexico = nowUTC.clone().tz('America/Mexico_City');
+        console.log('Hora actual en México:', nowMexico.format());
 
-        // Verificar si hay una clase activa en el salón
+        const currentHour = nowMexico.format('HH:mm:ss'); // Hora actual en formato de 24 horas
+        const currentDay = (nowMexico.day() + 6) % 7 + 1; // Ajustar el día de la semana
+
         const classQuery = `
             SELECT * FROM clase 
             WHERE "idSalon" = $1 
@@ -43,7 +47,6 @@ exports.startClass = async (req, res) => {
 
         const clase = classResult.rows[0];
 
-        // Verificar que la huella corresponde al maestro de la clase
         const userQuery = 'SELECT * FROM usuario WHERE huella = $1 AND id = $2';
         const userResult = await db.query(userQuery, [huella, clase.idUsuarioMaestro]);
 
@@ -51,25 +54,30 @@ exports.startClass = async (req, res) => {
             return res.status(401).json({ message: 'Huella no corresponde al maestro de la clase' });
         }
 
-        // Insertar un nuevo documento en MongoDB
+        // Generar el código QR
+        const validDuration = 60; // Duración válida en minutos
+        const qrCodeBase64 = await generateQRCode(clase.id, nowUTC.toISOString(), validDuration);
+
         const newClass = {
             estado: 1,
-            fechaStart: now,
+            fechaStart: nowUTC.toDate(), // Almacenar en UTC
             fechaEnd: null,
             idClase: clase.id,
-            idSalon: idSalon
+            idSalon: idSalon,
+            qrCode: qrCodeBase64,
+            idMaestro: clase.idUsuarioMaestro
         };
+
+        console.log('Datos a insertar en MongoDB:', newClass);
 
         const collection = client.db(dbName).collection(collectionName);
         const insertResult = await collection.insertOne(newClass);
 
-        // Devolver el ObjectId del documento insertado
         res.status(201).json({ message: 'Clase iniciada', id: insertResult.insertedId });
     } catch (err) {
         res.status(500).json({ message: `Error en el servidor: ${err.message}` });
     }
 };
-
 
 exports.endClass = async (req, res) => {
     const { id, huella } = req.body;
@@ -97,7 +105,6 @@ exports.endClass = async (req, res) => {
 
         const clase = classResult.rows[0];
 
-        // Verificar que la huella corresponde al maestro de la clase
         const userQuery = 'SELECT * FROM usuario WHERE huella = $1 AND id = $2';
         const userResult = await db.query(userQuery, [huella, clase.idUsuarioMaestro]);
 
@@ -105,15 +112,13 @@ exports.endClass = async (req, res) => {
             return res.status(401).json({ message: 'Huella no corresponde al maestro de la clase' });
         }
 
-        // Actualizar el documento en MongoDB para finalizar la clase
-        const updateResult = await collection.updateOne(
-            { _id: new ObjectId(id) },
-            { $set: { estado: 0, fechaEnd: new Date() } }
-        );
+        // Actualizar el estado de la clase a finalizada
+        const updateClass = {
+            estado: 0,
+            fechaEnd: moment.utc().toDate() // Almacenar en UTC
+        };
 
-        if (updateResult.matchedCount === 0) {
-            return res.status(404).json({ message: 'Clase no encontrada para actualizar' });
-        }
+        await collection.updateOne({ _id: new ObjectId(id) }, { $set: updateClass });
 
         res.status(200).json({ message: 'Clase finalizada' });
     } catch (err) {
