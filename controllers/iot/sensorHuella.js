@@ -7,6 +7,8 @@ const { ObjectId } = require('mongodb');
 
 const { generateQRCode } = require('../../config/qrServices'); // Asegúrate de que la ruta sea correcta
 
+const moment = require('moment-timezone');
+
 exports.startClass = async (req, res) => {
     const { huella, idSalon } = req.body;
 
@@ -22,9 +24,10 @@ exports.startClass = async (req, res) => {
             return res.status(404).json({ message: 'Salón no encontrado' });
         }
 
-        const now = new Date();
-        const currentHour = now.toTimeString().split(' ')[0]; 
-        const currentDay = (now.getDay() + 6) % 7 + 1; 
+        // Obtener la hora actual en la zona horaria de México
+        const now = moment().tz('America/Mexico_City');
+        const currentHour = now.format('HH:mm:ss'); // Hora actual en formato de 24 horas
+        const currentDay = (now.day() + 6) % 7 + 1; // Ajustar el día de la semana
 
         const classQuery = `
             SELECT * FROM clase 
@@ -53,12 +56,12 @@ exports.startClass = async (req, res) => {
 
         const newClass = {
             estado: 1,
-            fechaStart: now,
+            fechaStart: now.toDate(), // Convertir a objeto Date
             fechaEnd: null,
             idClase: clase.id,
             idSalon: idSalon,
-            qrCode: qrCodeBase64 ,
-            idMaestro : clase.idUsuarioMaestro
+            qrCode: qrCodeBase64,
+            idMaestro: clase.idUsuarioMaestro
         };
 
         const collection = client.db(dbName).collection(collectionName);
@@ -104,10 +107,13 @@ exports.endClass = async (req, res) => {
             return res.status(401).json({ message: 'Huella no corresponde al maestro de la clase' });
         }
 
+        // Obtener la hora actual en la zona horaria de México
+        const now = moment().tz('America/Mexico_City').toDate();
+
         // Actualizar el documento en MongoDB para finalizar la clase
         const updateResult = await collection.updateOne(
             { _id: new ObjectId(id) },
-            { $set: { estado: 0, fechaEnd: new Date() } }
+            { $set: { estado: 0, fechaEnd: now } }
         );
 
         if (updateResult.matchedCount === 0) {
