@@ -125,3 +125,30 @@ exports.endClass = async (req, res) => {
         res.status(500).json({ message: `Error en el servidor: ${err.message}` });
     }
 };
+
+exports.updateHuella = (req, res) => {
+    const { idMaestro, idhuella } = req.body;
+
+    if (!idMaestro) {
+        return res.status(400).json({ message: 'El ID del maestro es necesario' });
+    }
+
+    if (!idhuella) {
+        return res.status(400).json({ message: 'El ID de la huella es necesario' });
+    }
+
+    const query = 'UPDATE usuario SET huella = $1 WHERE id = $2 AND tipo = 2';
+
+    db.query(query, [idhuella, idMaestro], (err, results) => {
+        if (err) {
+            return res.status(500).json({ message: 'Error en el servidor', err });
+        }
+
+        if (results.rowCount === 0) {
+            return res.status(404).json({ message: 'No se encontró el maestro o no se pudo actualizar la huella' });
+        }
+
+        // Se actualizó al menos un registro
+        return res.status(200).json({ message: 'Huella registrada correctamente' });
+    });
+};
