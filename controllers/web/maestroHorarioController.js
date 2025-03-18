@@ -132,7 +132,9 @@ exports.getClasesActivas = async (req, res) => {
     });
 };
 
+const moment = require('moment-timezone');
+
 const getDayOfWeek = () => {
-    const now = new Date();
-    return (now.getDay() + 6) % 7 + 1;
+    const nowMexico = moment().tz('America/Mexico_City');
+    return (nowMexico.day() + 6) % 7 + 1;
 };

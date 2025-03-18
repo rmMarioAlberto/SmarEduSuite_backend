@@ -3,10 +3,8 @@ const client = require('../../config/mongo');
 const dbName = 'SmartEduSuite';
 const collectionName = 'puerta';
 
-const { ObjectId } = require('mongodb'); 
-
-const { generateQRCode } = require('../../config/qrServices'); // Asegúrate de que la ruta sea correcta
-
+const { ObjectId } = require('mongodb');
+const { generateQRCode } = require('../../config/qrServices');
 const moment = require('moment-timezone');
 
 exports.startClass = async (req, res) => {
@@ -24,10 +22,16 @@ exports.startClass = async (req, res) => {
             return res.status(404).json({ message: 'Salón no encontrado' });
         }
 
-        // Obtener la hora actual en la zona horaria de México
-        const now = moment().tz('America/Mexico_City');
-        const currentHour = now.format('HH:mm:ss'); // Hora actual en formato de 24 horas
-        const currentDay = (now.day() + 6) % 7 + 1; // Ajustar el día de la semana
+        // Obtener la hora actual en UTC
+        const nowUTC = moment.utc();
+        console.log('Hora actual en UTC:', nowUTC.format());
+
+        // Convertir a la hora de México para la lógica de negocio
+        const nowMexico = nowUTC.clone().tz('America/Mexico_City');
+        console.log('Hora actual en México:', nowMexico.format());
+
+        const currentHour = nowMexico.format('HH:mm:ss'); // Hora actual en formato de 24 horas
+        const currentDay = (nowMexico.day() + 6) % 7 + 1; // Ajustar el día de la semana
 
         const classQuery = `
             SELECT * FROM clase 
@@ -52,17 +56,19 @@ exports.startClass = async (req, res) => {
 
         // Generar el código QR
         const validDuration = 60; // Duración válida en minutos
-        const qrCodeBase64 = await generateQRCode(clase.id, now.toISOString(), validDuration);
+        const qrCodeBase64 = await generateQRCode(clase.id, nowUTC.toISOString(), validDuration);
 
         const newClass = {
             estado: 1,
-            fechaStart: now.toDate(), // Convertir a objeto Date
+            fechaStart: nowUTC.toDate(), // Almacenar en UTC
             fechaEnd: null,
             idClase: clase.id,
             idSalon: idSalon,
             qrCode: qrCodeBase64,
             idMaestro: clase.idUsuarioMaestro
         };
+
+        console.log('Datos a insertar en MongoDB:', newClass);
 
         const collection = client.db(dbName).collection(collectionName);
         const insertResult = await collection.insertOne(newClass);
@@ -99,7 +105,6 @@ exports.endClass = async (req, res) => {
 
         const clase = classResult.rows[0];
 
-        // Verificar que la huella corresponde al maestro de la clase
         const userQuery = 'SELECT * FROM usuario WHERE huella = $1 AND id = $2';
         const userResult = await db.query(userQuery, [huella, clase.idUsuarioMaestro]);
 
@@ -107,18 +112,13 @@ exports.endClass = async (req, res) => {
             return res.status(401).json({ message: 'Huella no corresponde al maestro de la clase' });
         }
 
-        // Obtener la hora actual en la zona horaria de México
-        const now = moment().tz('America/Mexico_City').toDate();
+        // Actualizar el estado de la clase a finalizada
+        const updateClass = {
+            estado: 0,
+            fechaEnd: moment.utc().toDate() // Almacenar en UTC
+        };
 
-        // Actualizar el documento en MongoDB para finalizar la clase
-        const updateResult = await collection.updateOne(
-            { _id: new ObjectId(id) },
-            { $set: { estado: 0, fechaEnd: now } }
-        );
-
-        if (updateResult.matchedCount === 0) {
-            return res.status(404).json({ message: 'Clase no encontrada para actualizar' });
-        }
+        await collection.updateOne({ _id: new ObjectId(id) }, { $set: updateClass });
 
         res.status(200).json({ message: 'Clase finalizada' });
     } catch (err) {
