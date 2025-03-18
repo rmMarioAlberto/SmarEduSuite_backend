@@ -410,7 +410,6 @@ CREATE OR REPLACE FUNCTION add_clase(
 DECLARE
     v_count INTEGER;
 BEGIN
-    -- Validar que el maestro, grupo, materia y salón existan y estén activos
     PERFORM 1 FROM usuario WHERE id = p_idMaestro AND status = 1 AND tipo = 2;
     IF NOT FOUND THEN
         RETURN 'El maestro no existe o no está activo';
@@ -431,7 +430,6 @@ BEGIN
         RETURN 'El salón no existe o no está activo';
     END IF;
 
-    -- Verificar conflictos de horario para el maestro
     SELECT COUNT(*) INTO v_count
     FROM clase
     WHERE "idUsuarioMaestro" = p_idMaestro
@@ -442,7 +440,6 @@ BEGIN
         RETURN 'El maestro ya tiene una clase en este horario';
     END IF;
 
-    -- Verificar conflictos de horario para el grupo
     SELECT COUNT(*) INTO v_count
     FROM clase
     WHERE "idGrupo" = p_idGrupo
@@ -453,7 +450,6 @@ BEGIN
         RETURN 'El grupo ya tiene una clase en este horario';
     END IF;
 
-    -- Verificar conflictos de horario para el salón
     SELECT COUNT(*) INTO v_count
     FROM clase
     WHERE "idSalon" = p_idSalon
@@ -464,7 +460,6 @@ BEGIN
         RETURN 'El salón ya tiene una clase en este horario';
     END IF;
 
-    -- Insertar la clase si todas las validaciones pasan
     INSERT INTO clase (status, inicio, final, dia, "idUsuarioMaestro", "idGrupo", "idMateria", "idSalon")
     VALUES (p_status, p_inicio, p_final, p_dia, p_idMaestro, p_idGrupo, p_idMateria, p_idSalon);
 
@@ -503,7 +498,6 @@ BEGIN
         RETURN 'La clase no existe';
     END IF;
 
-    -- Validar que el maestro, grupo, materia y salón existan y estén activos
     PERFORM 1 FROM usuario WHERE id = p_idMaestro AND status = 1 AND tipo = 2;
     IF NOT FOUND THEN
         RETURN 'El maestro no existe o no está activo';
@@ -524,7 +518,6 @@ BEGIN
         RETURN 'El salón no existe o no está activo';
     END IF;
 
-    -- Verificar conflictos de horario para el maestro, excluyendo la clase actual
     SELECT COUNT(*) INTO v_count
     FROM clase
     WHERE "idUsuarioMaestro" = p_idMaestro
@@ -536,7 +529,6 @@ BEGIN
         RETURN 'El maestro ya tiene una clase en este horario';
     END IF;
 
-    -- Verificar conflictos de horario para el grupo, excluyendo la clase actual
     SELECT COUNT(*) INTO v_count
     FROM clase
     WHERE "idGrupo" = p_idGrupo
@@ -548,7 +540,6 @@ BEGIN
         RETURN 'El grupo ya tiene una clase en este horario';
     END IF;
 
-    -- Verificar conflictos de horario para el salón, excluyendo la clase actual
     SELECT COUNT(*) INTO v_count
     FROM clase
     WHERE "idSalon" = p_idSalon
@@ -560,7 +551,6 @@ BEGIN
         RETURN 'El salón ya tiene una clase en este horario';
     END IF;
 
-    -- Actualizar la clase si todas las validaciones pasan
     UPDATE clase
     SET status = p_status,
         inicio = p_inicio,
