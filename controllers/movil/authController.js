@@ -47,9 +47,11 @@ exports.loginMovil = (req, res) => {
         // Validar el token actual
         jwtConfig.validateTokenMovil(user.id, user.token_movil, (result) => {
             
+            /*
             if (result.valid) {
                 return res.status(409).json({ message: 'Ya hay una sesión activa' });
             } 
+            */
 
             if (user.contra === null) {
                 const tokenmovil =jwtConfig.createToken(user.id, user.correo);
@@ -64,8 +66,7 @@ exports.loginMovil = (req, res) => {
                     }
                     return res.status(300).json({ message: "Primer login", user: filteredUser, tokenmovil });
                 });
-
-                return res.status(300).json({ message: "Primer login", user: filteredUser });
+                
             } else {
                 if (user.contra !== contra) {
                     return res.status(401).json({ message: 'Contraseña incorrecta' });

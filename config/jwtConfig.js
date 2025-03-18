@@ -2,7 +2,7 @@ const jwt = require('jsonwebtoken');
 const pg = require('./pg');
 const mongo = require('./mongo');
 
-const secretKey = 'smartEduSuite';
+const secretKey = 'aquí estaba mi clave secreta';
 
 const createToken = (idUser, correoUser) => {
     const payload = {
