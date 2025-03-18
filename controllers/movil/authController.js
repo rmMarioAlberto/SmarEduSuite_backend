@@ -45,8 +45,16 @@ exports.loginMovil = (req, res) => {
             return res.status(403).json({ message: 'No tienes permisos para acceder a esta aplicación' });
         }
 
+
+        // Para pruebas.
+        console.log('Usuario encontrado:', user);
+        console.log('Token movil actual:', user.token_movil);
+
+
         // Validar el token actual
         jwtConfig.validateTokenMovil(user.id, user.token_movil, (result) => {
+
+            console.log('Resultado de la validación de tokenMovil:', result);
             
             /*
             if (result.valid) {
@@ -55,7 +63,7 @@ exports.loginMovil = (req, res) => {
             */
 
             if (user.contra === null) {
-                const tokenmovil =jwtConfig.createToken(user.id, user.correo);
+                const tokenmovil = jwtConfig.createToken(user.id, user.correo);
                 const query2 = 'UPDATE usuario SET token_movil = $1 WHERE id = $2';
 
                 db.query(query2, [tokenmovil, user.id], (err, results) => {
