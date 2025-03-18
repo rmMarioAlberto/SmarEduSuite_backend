@@ -2,6 +2,7 @@ const jwtConfig = require('../../config/jwtConfig');
 const db = require('../../config/pg');
 
 exports.loginMovil = (req, res) => {
+    console.log("Entró al login")
     const { correo, contra } = req.body;
 
     if (!correo) {
@@ -66,7 +67,7 @@ exports.loginMovil = (req, res) => {
                     }
                     return res.status(300).json({ message: "Primer login", user: filteredUser, tokenmovil });
                 });
-                
+
             } else {
                 if (user.contra !== contra) {
                     return res.status(401).json({ message: 'Contraseña incorrecta' });
