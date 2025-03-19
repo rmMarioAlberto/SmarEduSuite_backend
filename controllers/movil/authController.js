@@ -89,9 +89,9 @@ exports.loginMovil = (req, res) => {
                         return res.status(500).json({ message: 'Error en el servidor' });
                     }
                     if (results.rowCount === 0) {
-                        return res.status(404).json({ message: 'Usuario no encontrado' });
+                        return res.status(404).json({ message: 'Usuario no encontrado.' });
                     }
-                    return res.status(200).json({ message: 'Login exitoso', user: filteredUser, tokenMovil });
+                    return res.status(200).json({ message: 'Login exitoso.', user: filteredUser, tokenMovil });
                 });
             }
         });
