@@ -119,16 +119,17 @@ exports.changePassword = (req, res) => {
 }
 
 exports.logout = (req,res) => {
-    const {idUsuario, tokenMovil} = req.body;
+    const { idUsuario } = req.body;
+    const { tokenMovil } = req.headers[ 'authorization' ];
 
     if (!idUsuario) {
         return res.status(400).json({message : 'El id de usuario es necesario'})
     }
-    if (!token) {
+    if (!tokenMovil) {
         return res.status(400).json({message : 'El token de usuario es necesario'})
     }
 
-    jwtControl.validateToken(idUsuario,token, (results) => {
+    jwtControl.validateToken(idUsuario, tokenMovil, (results) => {
         if (!results.valid) {
             return res.status(401).json({message : 'El token no es valido o esta vencido'})
         }
