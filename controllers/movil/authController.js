@@ -117,3 +117,34 @@ exports.changePassword = (req, res) => {
         return res.status(200).json({ message: 'Contraseña cambiada exitosamente' });
     });
 }
+
+exports.logout = (req,res) => {
+    const {idUsuario, token} = req.body;
+
+    if (!idUsuario) {
+        return res.status(400).json({message : 'El id de usuario es necesario'})
+    }
+    if (!token) {
+        return res.status(400).json({message : 'El token de usuario es necesario'})
+    }
+
+    jwtControl.validateToken(idUsuario,token, (results) => {
+        if (!results.valid) {
+            return res.status(401).json({message : 'El token no es valido o esta vencido'})
+        }
+
+        const query = 'UPDATE usuario SET token = null WHERE id = $1'
+
+        db.query(query, [idUsuario], (err,results) => {
+            if (err) {
+                return res.status(500).json({message : 'Error en el servidor', err})
+            }
+
+            if(results.rowCount === 0){
+                return res.status(500).json({message : "No se puedo hacer el logout"})
+            }
+
+            return res.status(200).json({message :'Logout exitoso'})
+        })
+    })
+}

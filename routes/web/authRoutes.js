@@ -8,4 +8,6 @@ router.post('/change-password', authController.changePassword);
 
 router.post('/loginGoogle', authController.loginGoogle);
 
+router.post('/logout', authController.logout);
+
 module.exports = router;
