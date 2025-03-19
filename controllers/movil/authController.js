@@ -119,8 +119,7 @@ exports.changePassword = (req, res) => {
 }
 
 exports.logoutMovil = (req,res) => {
-    const { idUsuario } = req.body;
-    const { tokenMovil } = req.headers[ 'authorization' ];
+    const { idUsuario, tokenMovil } = req.body;
 
     if (!idUsuario) {
         return res.status(400).json({message : 'El id de usuario es necesario'})
