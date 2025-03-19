@@ -73,7 +73,7 @@ exports.loginMovil = (req, res) => {
                     if (results.rowCount === 0) {
                         return res.status(404).json({ message: 'Usuario no encontrado' });
                     }
-                    return res.status(300).json({ message: "Primer login", user: filteredUser, tokenmovil });
+                    return res.status(300).json({ message: "Primer login", user: filteredUser, tokenmovil,  isFirstLogin: true });
                 });
 
             } else {
