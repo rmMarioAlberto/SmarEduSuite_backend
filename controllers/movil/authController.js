@@ -118,7 +118,7 @@ exports.changePassword = (req, res) => {
     });
 }
 
-exports.logout = (req,res) => {
+exports.logoutMovil = (req,res) => {
     const { idUsuario } = req.body;
     const { tokenMovil } = req.headers[ 'authorization' ];
 
