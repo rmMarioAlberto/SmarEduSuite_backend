@@ -1,12 +1,9 @@
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
-const moment = require('moment-timezone'); // Asegúrate de tener moment-timezone instalado
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Importar middlewares
-const { convertToUTC, convertToLocalTime } = require('./middlewares/timezone');
 
 // Configuración de CORS
 app.use(cors({
@@ -17,10 +14,6 @@ app.use(cors({
 
 // Middleware para parsear JSON
 app.use(express.json());
-
-// Uso del middleware para manejar zonas horarias
-app.use(convertToUTC);
-app.use(convertToLocalTime);
 
 // Requiere las conexiones a las bases de datos
 require('./config/mongo');
@@ -90,12 +83,4 @@ app.use((err, req, res, next) => {
 app.listen(PORT, () => {
     console.log(`Servidor corriendo en http://localhost:${PORT}`);
 
-    // Mostrar la hora actual en UTC
-    console.log('Hora actual en UTC:', moment().utc().format('YYYY-MM-DD HH:mm:ss'));
-
-    // Mostrar la hora actual en la zona horaria local del servidor
-    console.log('Hora actual en la zona horaria del servidor:', moment().format('YYYY-MM-DD HH:mm:ss'));
-
-    // Mostrar la hora actual en la zona horaria de México
-    console.log('Hora actual en México:', moment().tz('America/Mexico_City').format('YYYY-MM-DD HH:mm:ss'));
 });
