@@ -133,7 +133,7 @@ exports.logout = (req,res) => {
             return res.status(401).json({message : 'El token no es valido o esta vencido'})
         }
 
-        const query = 'UPDATE usuario SET token = null WHERE id = $1'
+        const query = 'UPDATE usuario SET token_movil = null WHERE id = $1'
 
         db.query(query, [idUsuario], (err,results) => {
             if (err) {
