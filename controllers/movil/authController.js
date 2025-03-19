@@ -73,7 +73,7 @@ exports.loginMovil = (req, res) => {
                     if (results.rowCount === 0) {
                         return res.status(404).json({ message: 'Usuario no encontrado' });
                     }
-                    return res.status(300).json({ message: "Primer login", user: filteredUser, tokenmovil,  isFirstLogin: true });
+                    return res.status(300).json({ message: "Primer login", user: filteredUser, tokenMovil,  isFirstLogin: true });
                 });
 
             } else {
@@ -99,15 +99,15 @@ exports.loginMovil = (req, res) => {
 };
 
 exports.changePassword = (req, res) => {
-    const { NewPassword, id } = req.body;
+    const { newPassword, id } = req.body;
 
-    if (!NewPassword) {
+    if (!newPassword) {
         return res.status(400).json({ message: 'Nueva contraseña es requerida' });
     }
 
     const query = 'UPDATE usuario SET contra = $1 WHERE id = $2';
 
-    db.query(query, [NewPassword, id], (err, results) => {
+    db.query(query, [newPassword, id], (err, results) => {
         if (err) {
             return res.status(500).json({ message: 'Error en el servidor' });
         }
@@ -119,7 +119,7 @@ exports.changePassword = (req, res) => {
 }
 
 exports.logout = (req,res) => {
-    const {idUsuario, token} = req.body;
+    const {idUsuario, tokenMovil} = req.body;
 
     if (!idUsuario) {
         return res.status(400).json({message : 'El id de usuario es necesario'})
