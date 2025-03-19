@@ -101,7 +101,7 @@ exports.changePassword = (req, res) => {
             return res.status(401).json({ message: result.error });
         }
 
-        const query = 'UPDATE usuario SET contra = $1 WHERE id = $2';
+        const query = 'UPDATE usuario SET contra = $1 AND token = null WHERE id = $2';
         db.query(query, [newPassword, id], (err, results) => {
             if (err) {
                 return res.status(500).json({ message: 'Error en el servidor' });
