@@ -63,10 +63,10 @@ exports.loginMovil = (req, res) => {
             */
 
             if (user.contra === null) {
-                const tokenmovil = jwtConfig.createToken(user.id, user.correo);
+                const tokenMovil = jwtConfig.createToken(user.id, user.correo);
                 const query2 = 'UPDATE usuario SET token_movil = $1 WHERE id = $2';
 
-                db.query(query2, [tokenmovil, user.id], (err, results) => {
+                db.query(query2, [tokenMovil, user.id], (err, results) => {
                     if (err) {
                         return res.status(500).json({ message: 'Error en el servidor' });
                     }
