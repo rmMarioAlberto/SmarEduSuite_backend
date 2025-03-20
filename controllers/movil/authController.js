@@ -123,7 +123,7 @@ exports.logoutMovil = (req, res) => {
         return res.status(400).json({ message: 'El token de usuario es necesario' })
     }
 
-    jwtControl.validateToken(idUsuario, tokenMovil, (results) => {
+    jwtConfig.validateTokenMovil(idUsuario, tokenMovil, (results) => {
         if (!results.valid) {
             return res.status(401).json({ message: 'El token no es valido o esta vencido' })
         }
@@ -132,7 +132,7 @@ exports.logoutMovil = (req, res) => {
 
         db.query(query, [idUsuario], (err, results) => {
             if (err) {
-                return res.status(500).json({ message: 'Error en el servidor',  err: err.message })
+                return res.status(500).json({ message: 'Error en el servidor (1)',  err: err.message })
             }
 
             if (results.rowCount === 0) {
