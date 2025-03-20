@@ -119,6 +119,7 @@ exports.changePassword = (req, res) => {
 }
 
 exports.logoutMovil = (req,res) => {
+    console.log('Datos recibidos en logout:', req.body);
     const { idUsuario, tokenMovil } = req.body;
 
     if (!idUsuario) {
@@ -137,8 +138,9 @@ exports.logoutMovil = (req,res) => {
 
         db.query(query, [idUsuario], (err,results) => {
             if (err) {
+                console.log('Error en la base de datos:', err);
                 return res.status(500).json({message : 'Error en el servidor', err})
-            }
+            }            
 
             if(results.rowCount === 0){
                 return res.status(500).json({message : "No se puedo hacer el logout"})
