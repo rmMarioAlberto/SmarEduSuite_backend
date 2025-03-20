@@ -24,11 +24,9 @@ exports.startClass = async (req, res) => {
 
         // Obtener la hora actual en UTC
         const nowUTC = moment.utc();
-        console.log('Hora actual en UTC:', nowUTC.format());
 
         // Convertir a la hora de México para la lógica de negocio
         const nowMexico = nowUTC.clone().tz('America/Mexico_City');
-        console.log('Hora actual en México:', nowMexico.format());
 
         const currentHour = nowMexico.format('HH:mm:ss'); // Hora actual en formato de 24 horas
         const currentDay = (nowMexico.day() + 6) % 7 + 1; // Ajustar el día de la semana
@@ -55,8 +53,8 @@ exports.startClass = async (req, res) => {
         }
 
         // Generar el código QR
-        const validDuration = 60; // Duración válida en minutos
-        const qrCodeBase64 = await generateQRCode(clase.id, nowUTC.toISOString(), validDuration);
+        const validDuration = 10; // Duración válida en minutos
+        const qrCodeBase64 = await generateQRCode(clase.id, nowUTC.toISOString(), validDuration, clase.idUsuarioMaestro);
 
         const newClass = {
             estado: 1,
@@ -69,7 +67,6 @@ exports.startClass = async (req, res) => {
             idGrupo : clase.idGrupo
         };
 
-        console.log('Datos a insertar en MongoDB:', newClass);
 
         const collection = client.db(dbName).collection(collectionName);
         const insertResult = await collection.insertOne(newClass);

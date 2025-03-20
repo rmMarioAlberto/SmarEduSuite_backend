@@ -3,53 +3,49 @@ const QRCode = require('qrcode');
 const moment = require('moment-timezone');
 
 // Función para generar un código QR en base64
-const generateQRCode = async (classId, startTime, validDuration) => {
+const generateQRCode = async (classId, startTime, validDuration, idUsuario) => {
     try {
+        // Generar un identificador único para el QR
+        const qrIdentifier = `${classId}-${idUsuario}-${Date.now()}`; 
+
         const qrData = {
             classId,
             startTime,
             validDuration,
+            qrIdentifier 
         };
 
-        // Convertir el objeto a una cadena JSON
         const qrString = JSON.stringify(qrData);
 
         // Generar el código QR en formato base64
         const qrCodeBase64 = await QRCode.toDataURL(qrString);
-        return qrCodeBase64;
+        return  qrCodeBase64 ; 
     } catch (err) {
         console.error('Error generating QR code:', err);
         throw err;
     }
 };
 
-// Función para validar el contenido del QR
-const validateQRCode = (qrString) => {
+const validateQRCode = (startTime, validDuration) => {
     try {
-        // Parsear la cadena JSON
-        const qrData = JSON.parse(qrString);
-
-        // Validar los campos necesarios
-        if (!qrData.classId || !qrData.startTime || !qrData.validDuration) {
+        if (!startTime || !validDuration) {
             throw new Error('Invalid QR data');
         }
 
-        // Validar la duración
-        const currentTime = moment.utc(); // Obtener la hora actual en UTC
-        const startTime = moment.utc(qrData.startTime); // Asegurarse de que startTime esté en UTC
-        const validUntil = startTime.clone().add(qrData.validDuration, 'minutes');
+        const startMoment = moment.utc(startTime);
+        const currentTime = moment.utc(); 
+
+        const validUntil = startMoment.clone().add(validDuration, 'minutes');
 
         if (currentTime.isAfter(validUntil)) {
-            throw new Error('QR code has expired');
+            return 0; 
         }
 
-        return true;
+        return 1; 
     } catch (err) {
         console.error('Error validating QR code:', err);
-        return false;
+        return -1; 
     }
 };
-
-
 
 module.exports = { generateQRCode, validateQRCode };
