@@ -132,7 +132,7 @@ exports.logoutMovil = (req, res) => {
 
         db.query(query, [idUsuario], (err, results) => {
             if (err) {
-                return res.status(500).json({ message: 'Error en el servidor', err })
+                return res.status(500).json({ message: 'Error en el servidor',  err: err.message })
             }
 
             if (results.rowCount === 0) {
