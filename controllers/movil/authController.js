@@ -2,7 +2,6 @@ const jwtConfig = require('../../config/jwtConfig');
 const db = require('../../config/pg');
 
 exports.loginMovil = (req, res) => {
-    console.log("Entró al login")
     const { correo, contra } = req.body;
 
     if (!correo) {
@@ -44,23 +43,19 @@ exports.loginMovil = (req, res) => {
         if (user.tipo === 3) {
             return res.status(403).json({ message: 'No tienes permisos para acceder a esta aplicación' });
         }
+        /** 
+                if (user.token) {
+                    try {
+                        jwt.verify(user.token, secretKey);
+                        return res.status(403).json({ message: 'Ya hay una sesión activa' });
+                    } catch (error) {
+                        return req.status(500).json({ message: 'Erro en el servidor', err })
+                    }
+                }
+                    */
 
-
-        // Para pruebas.
-        console.log('Usuario encontrado:', user);
-        console.log('Token movil actual:', user.token_movil);
-
-
-        // Validar el token actual
         jwtConfig.validateTokenMovil(user.id, user.token_movil, (result) => {
 
-            console.log('Resultado de la validación de tokenMovil:', result);
-            
-            /*
-            if (result.valid) {
-                return res.status(409).json({ message: 'Ya hay una sesión activa' });
-            } 
-            */
 
             if (user.contra === null) {
                 const tokenMovil = jwtConfig.createToken(user.id, user.correo);
@@ -73,7 +68,7 @@ exports.loginMovil = (req, res) => {
                     if (results.rowCount === 0) {
                         return res.status(404).json({ message: 'Usuario no encontrado' });
                     }
-                    return res.status(300).json({ message: "Primer login", user: filteredUser, tokenMovil,  isFirstLogin: true });
+                    return res.status(300).json({ message: "Primer login", user: filteredUser, tokenMovil, isFirstLogin: true });
                 });
 
             } else {
@@ -118,33 +113,33 @@ exports.changePassword = (req, res) => {
     });
 }
 
-exports.logoutMovil = (req,res) => {
+exports.logoutMovil = (req, res) => {
     const { idUsuario, tokenMovil } = req.body;
 
     if (!idUsuario) {
-        return res.status(400).json({message : 'El id de usuario es necesario'})
+        return res.status(400).json({ message: 'El id de usuario es necesario' })
     }
     if (!tokenMovil) {
-        return res.status(400).json({message : 'El token de usuario es necesario'})
+        return res.status(400).json({ message: 'El token de usuario es necesario' })
     }
 
     jwtControl.validateToken(idUsuario, tokenMovil, (results) => {
         if (!results.valid) {
-            return res.status(401).json({message : 'El token no es valido o esta vencido'})
+            return res.status(401).json({ message: 'El token no es valido o esta vencido' })
         }
 
         const query = 'UPDATE usuario SET token_movil = null WHERE id = $1'
 
-        db.query(query, [idUsuario], (err,results) => {
+        db.query(query, [idUsuario], (err, results) => {
             if (err) {
-                return res.status(500).json({message : 'Error en el servidor', err})
+                return res.status(500).json({ message: 'Error en el servidor', err })
             }
 
-            if(results.rowCount === 0){
-                return res.status(500).json({message : "No se puedo hacer el logout"})
+            if (results.rowCount === 0) {
+                return res.status(500).json({ message: "No se puedo hacer el logout" })
             }
 
-            return res.status(200).json({message :'Logout exitoso'})
+            return res.status(200).json({ message: 'Logout exitoso' })
         })
     })
 }

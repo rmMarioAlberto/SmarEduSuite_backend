@@ -65,7 +65,8 @@ exports.startClass = async (req, res) => {
             idClase: clase.id,
             idSalon: idSalon,
             qrCode: qrCodeBase64,
-            idMaestro: clase.idUsuarioMaestro
+            idMaestro: clase.idUsuarioMaestro,
+            idGrupo : clase.idGrupo
         };
 
         console.log('Datos a insertar en MongoDB:', newClass);

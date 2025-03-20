@@ -40,6 +40,7 @@ const luzRoutes = require('./routes/iot/luzRoutes');
 
 // Movil
 const authMovil = require('./routes/movil/authRoutes');
+const horariosMovil = require('./routes/movil/clasesRoutes');
 
 // Rutas de la API
 // Web
@@ -62,6 +63,7 @@ app.use('/iot/luz', luzRoutes);
 
 // Movil
 app.use('/movil', authMovil);
+app.use('/movil', horariosMovil)
 
 // Ruta de prueba para verificar que el servidor está funcionando
 app.get('/', (req, res) => {
