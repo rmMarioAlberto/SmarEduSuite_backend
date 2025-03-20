@@ -121,10 +121,13 @@ exports.logoutMovil = (req,res) => {
         return res.status(400).json({ message: 'El id de usuario es necesario' })
     }
     if (!tokenMovil) {
-        return res.status(402).json({ message: 'El token de usuario es necesario' })
+        return res.status(400).json({ message: 'El token de usuario es necesario' })
     }
 
+    console.log( 'Datos recibidos en logout: ', req.body );
     jwtControl.validateToken(idUsuario, tokenMovil, (results) => {
+
+        console.log( 'Resultado de validateToken: ', results )
         if (!results.valid) {
             return res.status(401).json({ message: 'El token no es valido o esta vencido' })
         }
@@ -141,7 +144,7 @@ exports.logoutMovil = (req,res) => {
 
             if (results.rowCount === 0) {
                 console.log( 'No se pudo hacer el logout: rowCount = 0' )
-                return res.status(500).json({ message: "No se puedo hacer el logout" })
+                return res.status(500).json({ message: "No se puedo hacer el logout." })
             }
 
             console.log( 'Logout exitoso para usuario: ', idUsuario );
