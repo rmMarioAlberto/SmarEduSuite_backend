@@ -28,7 +28,7 @@ exports.login = (req, res) => {
         }
 
         const user = results.rows[0];
-        const filteredUser = {
+        const filteredUser  = {
             id: user.id,
             nombre: user.nombre,
             apellidoMa: user.apellidoMa,
@@ -48,38 +48,38 @@ exports.login = (req, res) => {
             return res.status(403).json({ message: 'No tienes permisos para acceder a esta aplicación' });
         }
 
+        // Verificar la contraseña
+        if (user.contra !== null && user.contra !== contra) {
+            return res.status(401).json({ message: 'Contraseña incorrecta : 1' });
+        }
+
+        // Verificar el token
         if (user.token) {
             try {
                 jwt.verify(user.token, secretKey);
                 return res.status(403).json({ message: 'Ya hay una sesión activa' });
             } catch (error) {
-                return req.status(500).json({ message: 'Erro en el servidor', err })
+                if (error.name === 'TokenExpiredError') {
+                    // Token expirado, intenta generar uno nuevo
+                    const newToken = jwt.sign({ id: user.id, correo: user.correo }, secretKey, { expiresIn: '1h' });
+                    db.query(query2, [newToken, user.id], (err, results) => {
+                        if (err) {
+                            return res.status(500).json({ message: 'Error en el servidor : 2' });
+                        }
+                        return res.status(200).json({ message: 'Token expirado, nuevo token generado', user: filteredUser , token: newToken });
+                    });
+                } else {
+                    return res.status(500).json({ message: 'Error en el servidor', error: error.message });
+                }
             }
-        }
-        
-        const token = jwt.sign({ id: user.id, correo: user.correo }, secretKey, { expiresIn: '1h' });
-        if (user.contra === null) {
-            db.query(query2, [token, user.id], (err, results) => {
-                if (err) {
-                    return res.status(500).json({ message: 'Error en el servidor : 2' });
-                }
-                if (results.rowCount === 0) {
-                    return res.status(404).json({ message: 'Usuario no encontrado : 2' });
-                }
-                return res.status(300).json({ message: "Primer login", user: filteredUser, token });
-            });
         } else {
-            if (user.contra !== contra) {
-                return res.status(401).json({ message: 'Contraseña incorrecta : 1' });
-            }
+            // Generar un nuevo token si no hay token existente
+            const token = jwt.sign({ id: user.id, correo: user.correo }, secretKey, { expiresIn: '1h' });
             db.query(query2, [token, user.id], (err, results) => {
                 if (err) {
                     return res.status(500).json({ message: 'Error en el servidor : 2' });
                 }
-                if (results.rowCount === 0) {
-                    return res.status(404).json({ message: 'Usuario no encontrado : 2' });
-                }
-                return res.status(200).json({ message: 'Login exitoso', user: filteredUser, token });
+                return res.status(200).json({ message: 'Login exitoso', user: filteredUser , token });
             });
         }
     });

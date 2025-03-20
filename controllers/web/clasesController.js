@@ -113,7 +113,6 @@ exports.addClases = (req, res) => {
             return res.status(400).json({ message: 'El id del salon de la clase es necesario' });
         }
 
-        // Llamada al procedimiento almacenado
         const query = `SELECT add_clase($1, $2, $3, $4, $5, $6, $7, $8) AS result;`;
 
         db.query(query, [status, inicio, final, dia, idMaestro, idGrupo, idMateria, idSalon], (err, results) => {
@@ -123,7 +122,6 @@ exports.addClases = (req, res) => {
 
             const resultMessage = results.rows[0].result;
 
-            // Verificar el mensaje de retorno del procedimiento
             if (resultMessage === 'Clase creada exitosamente') {
                 return res.status(200).json({ message: resultMessage });
             } else {
