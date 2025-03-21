@@ -124,7 +124,7 @@ exports.loginGoogle = (req, res) => {
         return res.status(400).json({ message: 'El correo y el ID de Google son requeridos' });
     }
 
-    const query = 'SELECT * FROM usuario WHERE correo = $1';
+    const query = 'SELECT * FROM usuario WHERE correo = $1 AND status = 1';
 
     db.query(query, [correo], (err, result) => {
         if (err) {
@@ -137,15 +137,8 @@ exports.loginGoogle = (req, res) => {
 
         const user = result.rows[0];
 
-        if (user.status === 0) {
-            return res.status(301).json({ message: "Usuario deshabilitado" });
-        }
-
-        // Crear el token usando la función correcta
-        const token = jwtControl.createToken(user.id, user.correo);
-
         // Filtrar los datos del usuario
-        const filteredUser = {
+        const filteredUser  = {
             id: user.id,
             nombre: user.nombre,
             apellidoMa: user.apellidoMa,
@@ -158,46 +151,89 @@ exports.loginGoogle = (req, res) => {
             idGrupo: user.idGrupo
         };
 
-        // Verificar si es necesario actualizar el idGoogle
-        const shouldUpdateIdGoogle = !user.idGoogle || user.idGoogle !== idGoogle;
+        // Verificar el token
+        if (user.token) {
+            try {
+                jwt.verify(user.token, secretKey);
+                return res.status(403).json({ message: 'Ya hay una sesión activa' });
+            } catch (error) {
+                if (error.name === 'TokenExpiredError') {
+                    // Token expirado, intenta generar uno nuevo
+                    const newToken = jwt.sign({ id: user.id, correo: user.correo }, secretKey, { expiresIn: '1h' });
+                    const shouldUpdateIdGoogle = !user.idGoogle || user.idGoogle !== idGoogle;
 
-        // Construir la consulta de actualización basada en lo que necesitamos actualizar
-        let query2;
-        let params;
+                    // Construir la consulta de actualización
+                    let query2;
+                    let params;
 
-        if (shouldUpdateIdGoogle) {
-            // Necesitamos actualizar tanto el token como el idGoogle
-            query2 = 'UPDATE usuario SET "idGoogle" = $1, token = $2 WHERE id = $3';
-            params = [idGoogle, token, user.id];
+                    if (shouldUpdateIdGoogle) {
+                        query2 = 'UPDATE usuario SET "idGoogle" = $1, token = $2 WHERE id = $3';
+                        params = [idGoogle, newToken, user.id];
+                    } else {
+                        query2 = 'UPDATE usuario SET token = $1 WHERE id = $2';
+                        params = [newToken, user.id];
+                    }
+
+                    db.query(query2, params, (updateErr) => {
+                        if (updateErr) {
+                            return res.status(500).json({
+                                message: shouldUpdateIdGoogle ?
+                                    'Error al actualizar el ID de Google y token' :
+                                    'Error al actualizar el token',
+                                err: updateErr
+                            });
+                        }
+
+                        return res.status(200).json({
+                            message: shouldUpdateIdGoogle ?
+                                'Login exitoso y datos actualizados' :
+                                'Login exitoso',
+                            user: filteredUser ,
+                            token: newToken
+                        });
+                    });
+                } else {
+                    return res.status(500).json({ message: 'Error en el servidor', error: error.message });
+                }
+            }
         } else {
-            // Solo necesitamos actualizar el token
-            query2 = 'UPDATE usuario SET token = $1 WHERE id = $2';
-            params = [token, user.id];
-        }
+            // Generar un nuevo token si no hay token existente
+            const token = jwt.sign({ id: user.id, correo: user.correo }, secretKey, { expiresIn: '1h' });
+            const shouldUpdateIdGoogle = !user.idGoogle || user.idGoogle !== idGoogle;
 
-        db.query(query2, params, (updateErr, updateResult) => {
-            if (updateErr) {
-                return res.status(500).json({
-                    message: shouldUpdateIdGoogle ?
-                        'Error al actualizar el ID de Google y token' :
-                        'Error al actualizar el token',
-                    err: updateErr
-                });
+            // Construir la consulta de actualización
+            let query2;
+            let params;
+
+            if (shouldUpdateIdGoogle) {
+                query2 = 'UPDATE usuario SET "idGoogle" = $1, token = $2 WHERE id = $3';
+                params = [idGoogle, token, user.id];
+            } else {
+                query2 = 'UPDATE usuario SET token = $1 WHERE id = $2';
+                params = [token, user.id];
             }
 
-            return res.status(200).json({
-                message: shouldUpdateIdGoogle ?
-                    'Login exitoso y datos actualizados' :
-                    'Login exitoso',
-                user: shouldUpdateIdGoogle ?
-                    { ...filteredUser, idGoogle: idGoogle } :
-                    filteredUser,
-                token
+            db.query(query2, params, (updateErr) => {
+                if (updateErr) {
+                    return res.status(500).json({
+                        message: shouldUpdateIdGoogle ?
+                            'Error al actualizar el ID de Google y token' :
+                            ' Error al actualizar el token',
+                        err: updateErr
+                    });
+                }
+
+                return res.status(200).json({
+                    message: shouldUpdateIdGoogle ?
+                        'Login exitoso y datos actualizados' :
+                        'Login exitoso',
+                    user: filteredUser ,
+                    token
+                });
             });
-        });
+        }
     });
 };
-
 
 exports.logout = (req, res) => {
     const { idUsuario, token } = req.body;
