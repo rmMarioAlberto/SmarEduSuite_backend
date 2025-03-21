@@ -18,48 +18,66 @@ exports.listas = (req, res) => {
         if (!results.valid) {
             return res.status(401).json({ message: 'El token ya no es válido' });
         }
+        
+        if (!startDate) {
+            return res.status(400).json({ message: 'La fecha de inicio es necesario' });
+        }
+        if (!endDate) {
+            return res.status(400).json({ message: 'La fecha de termino es necesario' });
+        }
+        if (!idGrupo) {
+            return res.status(400).json({ message: 'El id de grupo es necesario' });
+        }
 
         try {
-            const query = 'SELECT id FROM usuario WHERE "idGrupo" = $1';
+            const query = `
+                SELECT id, string_agg(nombre || ' ' || "apellidoMa" || ' ' || "apellidoPa", ' ') AS nombre_completo
+                FROM usuario
+                WHERE "idGrupo" = $1
+                GROUP BY id
+            `;
             db.query(query, [idGrupo], async (err, results) => {
                 if (err) {
+                    console.error('Database Error:', err);
                     return res.status(500).json({ message: "Error en el servidor" });
                 }
+
                 if (results.rowCount === 0) {
                     return res.status(400).json({ message: 'No se encontraron alumnos' });
                 }
 
-                const alumnos = results.rows.map(row => row.id); // Obtener los IDs de los alumnos
-                const asistenciaPromises = alumnos.map(alumnoId => {
+                const alumnos = results.rows;
+                const asistenciaPromises = alumnos.map(alumno => {
+                    console.log('Consulting MongoDB for User:', alumno.id);
                     return client.db(dbname).collection(coleccion).find({
-                        idUsuario: alumnoId,
+                        idUsuario: alumno.id.toString(), 
                         fecha: {
-                            $gte: new Date(startDate), // Fecha de inicio
-                            $lte: new Date(endDate) // Fecha de fin
+                            $gte: new Date(startDate), 
+                            $lte: new Date(endDate) 
                         }
-                    }).toArray(); // Convertir el cursor a un array
+                    }).toArray().then(asistencias => ({
+                        idUsuario: alumno.id,
+                        nombreCompleto: alumno.nombre_completo,
+                        asistencias: asistencias
+                    }));
                 });
 
-                // Esperar a que todas las consultas a MongoDB se completen
                 Promise.all(asistenciaPromises)
-                    .then(asistencias => {
-                        // Agrupar los resultados
-                        const resultados = alumnos.map((alumnoId, index) => ({
-                            idUsuario: alumnoId,
-                            asistencias: asistencias[index] // Asistencias del alumno
-                        }));
-
+                    .then(resultados => {
                         return res.status(200).json(resultados);
                     })
                     .catch(err => {
+                        console.error('MongoDB Error:', err);
                         return res.status(500).json({ message: "Error al consultar asistencias", error: err });
                     });
             });
         } catch (error) {
+            console.error('Unexpected Error:', error);
             return res.status(500).json(error);
         }
     });
 };
+
 
 exports.gruposMaestro = (req, res) => {
     const { idUsuario, token } = req.body;
