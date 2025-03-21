@@ -111,7 +111,7 @@ exports.gruposMaestro = (req, res) => {
                 return res.status(400).json({ message: 'No se encontraron grupos para el maestro' })
             }
 
-            return res.status(300).json(results.rows);
+            return res.status(200).json(results.rows);
         })
     })
 }
