@@ -6,7 +6,9 @@ const collectionName = 'puerta';
 
 
 exports.getClasesActivasMaestro = (req, res) => {
+    console.log('Datos recibidos en el backend:', req.body);
     const { idUsuario, tokenMovil } = req.body;
+    console.log('Datos recibidos en el backend:', req.body);
 
     if (!idUsuario) {
         return res.status(400).json({ message: 'El id del usuario es necesario' });
