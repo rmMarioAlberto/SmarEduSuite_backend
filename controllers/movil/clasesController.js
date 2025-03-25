@@ -6,16 +6,16 @@ const collectionName = 'puerta';
 
 
 exports.getClasesActivasMaestro = (req, res) => {
-    const { idUsuario, token } = req.body;
+    const { idUsuario, tokenMovil } = req.body;
 
     if (!idUsuario) {
         return res.status(400).json({ message: 'El id del usuario es necesario' });
     }
-    if (!token) {
+    if (!tokenMovil) {
         return res.status(400).json({ message: 'El token del usuario es necesario' });
     }
 
-    jwtConfig.validateTokenMovil(idUsuario, token, async (results) => {
+    jwtConfig.validateTokenMovil(idUsuario, tokenMovil, async (results) => {
         if (!results.valid) {
             return res.status(401).json({ message: results.error });
         }
@@ -84,16 +84,16 @@ exports.getClasesActivasMaestro = (req, res) => {
 }
 
 exports.getHorarioMaestro = async (req, res) => {
-    const { idUsuario, token } = req.body;
+    const { idUsuario, tokenMovil } = req.body;
 
     if (!idUsuario) {
         return res.status(400).json({ message: 'El id del usuario es necesario' });
     }
-    if (!token) {
+    if (!tokenMovil) {
         return res.status(400).json({ message: 'El token del usuario es necesario' });
     }
 
-    jwtConfig.validateTokenMovil(idUsuario, token, async (results) => {
+    jwtConfig.validateTokenMovil(idUsuario, tokenMovil, async (results) => {
         if (!results.valid) {
             return res.status(401).json({ message: results.error });
         }
@@ -133,17 +133,17 @@ exports.getHorarioMaestro = async (req, res) => {
 };
 
 exports.getHorarioDiaAlumno = (req, res) => {
-    const { idUsuario, token } = req.body;
+    const { idUsuario, tokenMovil } = req.body;
 
     if (!idUsuario) {
         return res.status(400).json({ message: 'El id usuario es necesario' })
     }
 
-    if (!token) {
+    if (!tokenMovil) {
         return res.status(400).json({ message: 'El token es necesario' })
     }
 
-    jwtConfig.validateTokenMovil(idUsuario, token, async (restults) => {
+    jwtConfig.validateTokenMovil(idUsuario, tokenMovil, async (restults) => {
         if (!restults.valid) {
             return res.status(401).json({ message: 'El token no es valido o esta vencido' })
         }
@@ -198,16 +198,16 @@ exports.getHorarioDiaAlumno = (req, res) => {
 };
 
 exports.getClasesActivasDiaAlumno = (req, res) => {
-    const { idUsuario, token } = req.body;
+    const { idUsuario, tokenMovil } = req.body;
 
     if (!idUsuario) {
         return res.status(400).json({ message: 'El id del usuario es necesario' });
     }
-    if (!token) {
+    if (!tokenMovil) {
         return res.status(400).json({ message: 'El token del usuario es necesario' });
     }
 
-    jwtConfig.validateTokenMovil(idUsuario, token, async (results) => {
+    jwtConfig.validateTokenMovil(idUsuario, tokenMovil, async (results) => {
         if (!results.valid) {
             return res.status(401).json({ message: results.error });
         }
