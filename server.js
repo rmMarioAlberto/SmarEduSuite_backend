@@ -66,8 +66,8 @@ app.use('/iot/luz', luzRoutes);
 
 // Movil
 app.use('/movil', authMovil);
-app.use('/movil', horariosMovil)
-app.use('/movil', qr)
+app.use('/movil', horariosMovil);
+app.use('/movil', qr);
 
 // Ruta de prueba para verificar que el servidor está funcionando
 app.get('/', (req, res) => {

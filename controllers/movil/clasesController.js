@@ -6,18 +6,16 @@ const collectionName = 'puerta';
 
 
 exports.getClasesActivasMaestro = (req, res) => {
-    console.log('Datos recibidos en el backend:', req.body);
-    const { idUsuario, tokenMovil } = req.body;
-    console.log('Datos recibidos en el backend:', req.body);
+    const { idUsuario, token } = req.body;
 
     if (!idUsuario) {
         return res.status(400).json({ message: 'El id del usuario es necesario' });
     }
-    if (!tokenMovil) {
+    if (!token) {
         return res.status(400).json({ message: 'El token del usuario es necesario' });
     }
 
-    jwtConfig.validateTokenMovil(idUsuario, tokenMovil, async (results) => {
+    jwtConfig.validateTokenMovil(idUsuario, token, async (results) => {
         if (!results.valid) {
             return res.status(401).json({ message: results.error });
         }
@@ -86,16 +84,16 @@ exports.getClasesActivasMaestro = (req, res) => {
 }
 
 exports.getHorarioMaestro = async (req, res) => {
-    const { idUsuario, tokenMovil } = req.body;
+    const { idUsuario, token } = req.body;
 
     if (!idUsuario) {
         return res.status(400).json({ message: 'El id del usuario es necesario' });
     }
-    if (!tokenMovil) {
+    if (!token) {
         return res.status(400).json({ message: 'El token del usuario es necesario' });
     }
 
-    jwtConfig.validateTokenMovil(idUsuario, tokenMovil, async (results) => {
+    jwtConfig.validateTokenMovil(idUsuario, token, async (results) => {
         if (!results.valid) {
             return res.status(401).json({ message: results.error });
         }
@@ -135,17 +133,17 @@ exports.getHorarioMaestro = async (req, res) => {
 };
 
 exports.getHorarioDiaAlumno = (req, res) => {
-    const { idUsuario, tokenMovil } = req.body;
+    const { idUsuario, token } = req.body;
 
     if (!idUsuario) {
         return res.status(400).json({ message: 'El id usuario es necesario' })
     }
 
-    if (!tokenMovil) {
+    if (!token) {
         return res.status(400).json({ message: 'El token es necesario' })
     }
 
-    jwtConfig.validateTokenMovil(idUsuario, tokenMovil, async (restults) => {
+    jwtConfig.validateTokenMovil(idUsuario, token, async (restults) => {
         if (!restults.valid) {
             return res.status(401).json({ message: 'El token no es valido o esta vencido' })
         }
@@ -200,16 +198,16 @@ exports.getHorarioDiaAlumno = (req, res) => {
 };
 
 exports.getClasesActivasDiaAlumno = (req, res) => {
-    const { idUsuario, tokenMovil } = req.body;
+    const { idUsuario, token } = req.body;
 
     if (!idUsuario) {
         return res.status(400).json({ message: 'El id del usuario es necesario' });
     }
-    if (!tokenMovil) {
+    if (!token) {
         return res.status(400).json({ message: 'El token del usuario es necesario' });
     }
 
-    jwtConfig.validateTokenMovil(idUsuario, tokenMovil, async (results) => {
+    jwtConfig.validateTokenMovil(idUsuario, token, async (results) => {
         if (!results.valid) {
             return res.status(401).json({ message: results.error });
         }
