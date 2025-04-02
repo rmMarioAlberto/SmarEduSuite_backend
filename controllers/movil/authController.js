@@ -114,7 +114,6 @@ exports.changePassword = (req, res) => {
 }
 
 exports.logoutMovil = (req,res) => {
-    console.log('Datos recibidos en logout:', req.body);
     const { idUsuario, tokenMovil } = req.body;
 
     if (!idUsuario) {
@@ -137,11 +136,9 @@ exports.logoutMovil = (req,res) => {
             }
 
             if (results.rowCount === 0) {
-                console.log( 'No se pudo hacer el logout: rowCount = 0' )
                 return res.status(500).json({ message: "No se puedo hacer el logout." })
             }
 
-            console.log( 'Logout exitoso para usuario: ', idUsuario );
             return res.status(200).json({ message: 'Logout exitoso' })
         })
     })

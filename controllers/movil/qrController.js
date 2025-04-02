@@ -48,8 +48,11 @@ exports.scanQR = async (req, res) => {
             return res.status(400).json({ message: 'El usuario no pertenece al grupo' });
         }
 
+        // Convertir startTime a la zona horaria del servidor
+        const startTimeServer = moment.tz(startTime, 'America/Mexico_City').utc().format();
+
         // Validar el código QR
-        const asistencia = qr.validateQRCode(startTime, validDuration);
+        const asistencia = qr.validateQRCode(startTimeServer, validDuration);
         if (asistencia === -1) {
             return res.status(400).json({ message: 'Error en la validación del QR.' });
         }
@@ -58,9 +61,9 @@ exports.scanQR = async (req, res) => {
         const paseLista = {
             claseId: classId,
             idUsuario: idUsuario,
-            startTime: startTime,
+            startTime: startTimeServer,
             asistencia: asistencia,
-            fecha: moment.utc().toDate(),
+            fecha: moment.tz('America/Mexico_City').utc().toDate(),
             qrIdentifier: qrIdentifier
         };
 
